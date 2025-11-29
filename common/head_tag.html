@@ -79,16 +79,19 @@ api.onPageChange(() => {
       
       const savedStatus = localStorage.getItem('user_status_' + username) || '';
       const isOwnProfile = user.username === (window.currentUser?.username || '');
+      const editButtonHTML = isOwnProfile ? '<button class="edit-background-btn" title="Change Background">' + editIconSVG + '</button>' : '';
       
       leftSection.innerHTML =
         '<div class="user-card-avatar">' +
           '<img src="' + avatar + '" alt="' + user.username + ' avatar">' +
           '<div class="status-badge"></div>' +
-          '<button class="edit-background-btn" title="Change Background">' + editIconSVG + '</button>' +
+          editButtonHTML +
         '</div>' +
         '<div class="user-info">' +
-          '<h2 class="display-name">' + (user.name || user.username) + '</h2>' +
-          '<p class="username">@' + user.username + '</p>' +
+          '<div class="name-stack">' +
+            '<h2 class="display-name">' + (user.name || user.username) + '</h2>' +
+            '<p class="username">@' + user.username + '</p>' +
+          '</div>' +
           '<div class="posts-stat">' +
             '<span class="stat-value">' + (user.post_count || 0) + '</span>' +
             '<span class="stat-label">Posts</span>' +
@@ -96,10 +99,10 @@ api.onPageChange(() => {
         '</div>' +
         rolesHTML;
       
-      rightSection.innerHTML = '<div class="status-box"><div class="status-label">Status</div><textarea placeholder="' + (isOwnProfile ? 'Set your status...' : 'User status...') + '" ' + (isOwnProfile ? '' : 'readonly') + '>' + savedStatus + '</textarea></div><div class="user-actions"><a href="/new-message?username=' + user.username + '&type=chat" class="btn btn-primary">💬 Chat</a><a href="/new-message?username=' + user.username + '" class="btn btn-secondary">✉️ Message</a><a href="/u/' + user.username + '" class="btn btn-secondary">👤 Profile</a></div>';
+      rightSection.innerHTML = '<div class="status-box"><div class="status-label">Status</div><textarea placeholder="' + (isOwnProfile ? 'Set your status...' : 'User status...') + '" ' + (isOwnProfile ? '' : 'readonly disabled') + '>' + savedStatus + '</textarea></div><div class="user-actions"><a href="/new-message?username=' + user.username + '&type=chat" class="btn btn-primary">💬 Chat</a><a href="/new-message?username=' + user.username + '" class="btn btn-secondary">✉️ Message</a><a href="/u/' + user.username + '" class="btn btn-secondary">👤 Profile</a></div>';
       
       const editBtn = card.querySelector('.edit-background-btn');
-      if (editBtn) editBtn.onclick = (e) => { e.stopPropagation(); openTenorPicker(username, card); };
+      if (editBtn && isOwnProfile) editBtn.onclick = (e) => { e.stopPropagation(); openTenorPicker(username, card); };
       
       if (isOwnProfile) {
         const statusTextarea = card.querySelector('.status-box textarea');
