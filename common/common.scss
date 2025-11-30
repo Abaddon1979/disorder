@@ -63,11 +63,13 @@ $discord-hover: #3c3f45;
   align-items: flex-start;
 
   // Reply header ("Replied to …") should be one full-width row above avatar/username/time
+// "Replied to ..." row should line up with main message text & subsequent messages
+// 60px = 48px avatar + 12px gap; plus the 16px container padding stays as-is
   .chat-reply {
     flex: 0 0 100%;
     width: 100%;
     margin-bottom: 4px;
-    margin-left: 0;         // align directly above avatar (no extra indent)
+    margin-left: 60px;
   }
 
   // Avatar on the left column
@@ -119,10 +121,10 @@ $discord-hover: #3c3f45;
   }
 }
 
-// For follow-up messages (no avatar), indent slightly so they sit under the main message text,
-// but not as far to the right as before
+// For follow-up messages (no avatar), indent so their text column matches the main message text
+// 60px = 48px avatar width + 12px gap to text
 .chat-message:not(:has(.chat-message-avatar)) {
-  padding-left: 32px !important;
+  padding-left: 60px !important;
 }
 
 // Discord-style Message Composer (from example)
