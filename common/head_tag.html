@@ -54,13 +54,19 @@ api.onPageChange(() => {
     const cardWidth = 600;
     const cardHeight = 280;
     
-    let left = clickX + 10;
-    if (left + cardWidth > window.innerWidth) left = clickX - cardWidth - 10;
-    let top = clickY + 10;
-    if (top + cardHeight > window.innerHeight) top = Math.max(10, clickY - cardHeight - 10);
-    
-    card.style.left = left + 'px';
-    card.style.top = top + 'px';
+    if (isMobile) {
+      // Full-screen mobile card; positioning handled by CSS
+      card.style.left = '0';
+      card.style.top = '0';
+    } else {
+      let left = clickX + 10;
+      if (left + cardWidth > window.innerWidth) left = clickX - cardWidth - 10;
+      let top = clickY + 10;
+      if (top + cardHeight > window.innerHeight) top = Math.max(10, clickY - cardHeight - 10);
+      
+      card.style.left = left + 'px';
+      card.style.top = top + 'px';
+    }
     card.innerHTML = '<button class="user-card-close">×</button><div class="user-card-left"><div class="user-card-loading"><div class="spinner"></div><span>Loading...</span></div></div><div class="user-card-right"></div>';
     
     document.body.appendChild(backdrop);
