@@ -160,27 +160,11 @@ api.onPageChange(() => {
             // Some installs return a wrapper with the actual chat channel under `channel`
             const dmChannel = channel && channel.channel ? channel.channel : channel;
 
-            // Use the pattern you confirmed works manually: /c/chat/username/{channel.id under "channel" heading}
-            if (dmChannel && dmChannel.id) {
-              const dmUrl =
-                "/c/chat/" +
-                encodeURIComponent(user.username) +
-                "/" +
-                dmChannel.id;
-              window.location.href = dmUrl;
-            } else if (router && router.transitionTo && dmChannel) {
-              // Fallback to router navigation if URL pieces are missing
-              router.transitionTo(
-                "chat.channel",
-                "-",
-                dmChannel.id,
-                dmChannel.slug
-              );
-            }
-
-            document
-              .querySelectorAll('.discord-user-card-backdrop, .discord-user-card')
-              .forEach((el) => el.remove());
+            // Keep the API call but do not redirect; just log the resolved DM channel
+            console.log(
+              "[Discord Style Chat] DM channel (no redirect):",
+              dmChannel
+            );
           } catch (error) {
             console.error("Failed to open chat:", error);
           }
