@@ -193,10 +193,10 @@ api.onPageChange(() => {
         if (statusTextarea) {
           statusTextarea.addEventListener("input", function () {
             const newStatus = this.value || "";
-            // Use core Discourse user-status endpoint (expects nested user_status[description])
-            ajax("/user-status.json", {
+            // Use custom /chat-status.json endpoint to store per-user status
+            ajax("/chat-status.json", {
               type: "PUT",
-              data: { user_status: { description: newStatus } },
+              data: { status: newStatus },
             }).catch((e) => {
               console.error("[Discord Style Chat] Failed to update status", e);
             });
