@@ -57,21 +57,24 @@ $discord-hover: #3c3f45;
   border-radius: 0 !important;
   padding: 8px 16px !important;
   margin: 0 !important;
-  display: block !important; // use block + floats, not flex, so we can control stacking
+  display: flex !important;
+  flex-direction: row;
+  flex-wrap: wrap;          // allow reply header to be its own row
+  align-items: flex-start;
 
-  // Reply header ("Replied to …") should be a full-width row above avatar/username/time
+  // Reply header ("Replied to …") should be one full-width row above avatar/username/time
   .chat-reply {
-    display: block;
+    flex: 0 0 100%;
     width: 100%;
-    clear: both;        // ensure it sits above the floated avatar/content
     margin-bottom: 4px;
+    margin-left: 60px;      // indent to line up with message content (48px avatar + 12px gap)
   }
 
-  // Avatar floats left, creates the left column
+  // Avatar on the left column
   .chat-message-avatar {
     border-radius: 50%;
-    float: left;
     margin-right: 12px;
+    flex-shrink: 0;
 
     img {
       border-radius: 50%;
@@ -79,9 +82,10 @@ $discord-hover: #3c3f45;
     }
   }
 
-  // Main content (username/time/text) flows to the right of the avatar
+  // Main content (username/time/text) to the right of avatar
   .chat-message-content {
-    overflow: hidden;   // clear the float and create the right column
+    flex: 1;
+    min-width: 0;
   }
 
   .chat-message-info {
