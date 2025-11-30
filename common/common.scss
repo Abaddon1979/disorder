@@ -909,14 +909,17 @@ body:not(.enable-online-sidebar) {
     display: flex !important;
     flex-direction: column !important;
     gap: 12px !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
   }
 
   .discord-user-card .user-card-left {
     width: 100% !important;
     flex-direction: row !important;
-    align-items: center !important;
+    align-items: flex-start !important;
     padding-top: 0 !important;
     gap: 12px !important;
+    flex-wrap: wrap !important;
   }
 
   .discord-user-card .user-card-left .user-card-avatar {
@@ -926,11 +929,17 @@ body:not(.enable-online-sidebar) {
 
   .discord-user-card .user-card-left .user-info {
     flex: 1 !important;
+    min-width: 0 !important;
   }
 
   .discord-user-card .user-card-left .roles-section {
     width: 100% !important;
     margin-top: 4px !important;
+  }
+
+  .discord-user-card .user-card-left .user-info .posts-stat {
+    width: 100% !important;
+    margin-top: 6px !important;
   }
 
   .discord-user-card .user-card-right {
