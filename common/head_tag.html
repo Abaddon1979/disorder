@@ -13,15 +13,6 @@ api.onPageChange(() => {
   const isNarrowDesktop = window.innerWidth <= 1024 && !isMobileUA;
   const isMobile = isMobileUA;
 
-  // Shared JSON of user statuses, stored as a single localStorage entry
-  let userStatuses = {};
-  try {
-    userStatuses = JSON.parse(localStorage.getItem("user_statuses_json") || "{}");
-  } catch (e) {
-    console.error("[Discord Style Chat] Failed to parse user_statuses_json, resetting.", e);
-    userStatuses = {};
-  }
-
   if (!sidebarEnabled) return;
   if (isNarrowDesktop) return;
   
@@ -101,7 +92,7 @@ api.onPageChange(() => {
       
       const editIconSVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>';
       
-      const savedStatus = userStatuses[username] || '';
+      const savedStatus = user.chat_status || "";
       const apiCurrentUser = api.getCurrentUser ? api.getCurrentUser() : null;
       const currentUsername =
         (window.currentUser && window.currentUser.username) ||
@@ -199,15 +190,17 @@ api.onPageChange(() => {
       
       if (isOwnProfile) {
         const statusTextarea = card.querySelector('.status-box textarea');
-        if (statusTextarea)
+        if (statusTextarea) {
           statusTextarea.addEventListener("input", function () {
-            userStatuses[username] = this.value || "";
-            try {
-              localStorage.setItem("user_statuses_json", JSON.stringify(userStatuses));
-            } catch (e) {
-              console.error("[Discord Style Chat] Failed to persist user_statuses_json", e);
-            }
+            const newStatus = this.value || "";
+            ajax("/status.json", {
+              type: "PUT",
+              data: { status: newStatus },
+            }).catch((e) => {
+              console.error("[Discord Style Chat] Failed to update status", e);
+            });
           });
+        }
       }
       
       closeBtn.onclick = (e) => { e.stopPropagation(); document.querySelectorAll('.discord-user-card-backdrop, .discord-user-card').forEach(el => el.remove()); };
@@ -235,9 +228,18 @@ api.onPageChange(() => {
             img.src = gif.media_formats.tinygif?.url || gif.media_formats.gif.url;
             img.dataset.fullUrl = gif.media_formats.webp?.url || gif.media_formats.gif?.url;
             img.onclick = () => {
-              cardElement.style.setProperty('--user-card-bg', 'url(' + img.dataset.fullUrl + ')');
-              cardElement.setAttribute('data-bg-url', img.dataset.fullUrl);
-              localStorage.setItem('user_card_bg_' + username, img.dataset.fullUrl);
+              const fullUrl = img.dataset.fullUrl;
+              cardElement.style.setProperty('--user-card-bg', 'url(' + fullUrl + ')');
+              cardElement.setAttribute('data-bg-url', fullUrl);
+              // Persist locally for quick load
+              localStorage.setItem('user_card_bg_' + username, fullUrl);
+              // Persist on server so everyone sees the same background
+              ajax("/status.json", {
+                type: "PUT",
+                data: { background_url: fullUrl },
+              }).catch((e) => {
+                console.error("[Discord Style Chat] Failed to update background_url", e);
+              });
               modal.remove();
             };
             resultsDiv.appendChild(img);
