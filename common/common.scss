@@ -56,17 +56,13 @@ $discord-hover: #3c3f45;
   border-radius: 0 !important;
   padding: 8px 16px !important;
   margin: 0 !important;
-  display: flex;
-  align-items: flex-start;
 
+  // Keep Discourse's default layout; just round the avatar like Discord
   .chat-message-avatar {
     border-radius: 50%;
-    overflow: hidden;
-    margin-right: 8px;
 
     img {
       border-radius: 50%;
-      object-fit: cover;
     }
   }
 
