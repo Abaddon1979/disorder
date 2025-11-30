@@ -50,21 +50,15 @@ $discord-hover: #3c3f45;
   }
 }
 
-// Use CSS grid so reply header can span full width above avatar/username/time
+// Keep Discourse's default layout; just style colors/typography
 .chat-message {
   background-color: transparent !important;
   color: $discord-text !important;
   border-radius: 0 !important;
   padding: 8px 16px !important;
   margin: 0 !important;
-  display: grid !important;
-  grid-template-columns: auto 1fr;
-  grid-auto-rows: auto;
-  column-gap: 12px;
-  row-gap: 2px;
 
   .chat-message-avatar {
-    grid-area: avatar;
     border-radius: 50%;
 
     img {
@@ -74,12 +68,7 @@ $discord-hover: #3c3f45;
   }
 
   .chat-message-info {
-    grid-area: info;
     color: $discord-text !important;
-    display: flex;
-    align-items: baseline;
-    flex-wrap: wrap;
-    gap: 4px;
 
     .username {
       color: $discord-text !important;
@@ -95,7 +84,6 @@ $discord-hover: #3c3f45;
   }
 
   .chat-message-text {
-    grid-area: text;
     color: $discord-text !important;
     font-family: 'Quicksand', sans-serif;
 
@@ -110,23 +98,11 @@ $discord-hover: #3c3f45;
   }
 }
 
-// Default grid placement:
-// "reply reply"
-// "avatar info"
-// "avatar text"
-.chat-message .chat-reply,
-.chat-message .chat-message-reply {
-  grid-column: 1 / -1; // span full width above
-  margin-bottom: 4px;
-}
-
 // For follow-up messages (no avatar), indent so text lines up with the main message content
 // This assumes follow-up messages don't render a `.chat-message-avatar` element.
 .chat-message:not(:has(.chat-message-avatar)) {
-  padding-left: calc(16px + 32px) !important; // chat padding-left + avatar width
+  padding-left: 48px !important; // 16px (chat padding-left) + 32px (avatar width)
 }
-
-// (reply header grid placement handled in .chat-message block above)
 
 // Discord-style Message Composer (from example)
 .chat-composer-container {
