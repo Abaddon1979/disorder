@@ -44,6 +44,9 @@ $discord-hover: #3c3f45;
 .chat-message-container {
   background-color: transparent !important;
   border: none !important;
+  display: flex;
+  align-items: flex-start;
+  padding: 2px 16px !important;
 
   &:hover {
     background-color: $discord-hover !important;
@@ -54,32 +57,62 @@ $discord-hover: #3c3f45;
   background-color: transparent !important;
   color: $discord-text !important;
   border-radius: 0 !important;
-  padding: 8px 16px !important;
+  padding: 4px 0 !important;
   margin: 0 !important;
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
 
   .chat-message-avatar {
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
+    margin-right: 12px;
+    flex-shrink: 0;
+    overflow: hidden;
+
+    img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+  }
+
+  .chat-message-content {
+    flex: 1;
+    min-width: 0;
   }
 
   .chat-message-info {
+    display: flex;
+    align-items: baseline;
     color: $discord-text !important;
+    font-size: 15px;
+    line-height: 1.2;
 
     .username {
       color: $discord-text !important;
       font-weight: 600;
       font-family: 'Quicksand', sans-serif;
+      margin-right: 4px;
     }
 
     .time {
       color: $discord-text-muted;
-      font-size: 0.75rem;
-      margin-left: 8px;
+      font-size: 11px;
+      text-transform: none;
+      margin-left: 0;
     }
   }
 
   .chat-message-text {
     color: $discord-text !important;
     font-family: 'Quicksand', sans-serif;
+    font-size: 15px;
+    line-height: 1.35;
+    margin-top: 2px;
+    white-space: pre-wrap;
 
     a {
       color: $discord-text-link !important;
