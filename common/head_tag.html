@@ -122,21 +122,49 @@ api.onPageChange(() => {
       
       rightSection.innerHTML = '<div class="status-box"><div class="status-label">Status</div><textarea placeholder="' + (isOwnProfile ? 'Set your status...' : 'User status...') + '" ' + (isOwnProfile ? '' : 'readonly disabled') + '>' + savedStatus + '</textarea></div><div class="user-actions"><a href="#" class="btn btn-primary user-card-chat-btn">💬 Chat</a><a href="/new-message?username=' + user.username + '" class="btn btn-secondary">✉️ Message</a><a href="/u/' + user.username + '" class="btn btn-secondary">👤 Profile</a></div>';
       
-      const chatService = api.container && api.container.lookup ? api.container.lookup("service:chat") : null;
-      const router = api.container && api.container.lookup ? api.container.lookup("service:router") : null;
       const chatBtn = rightSection.querySelector('.user-card-chat-btn');
-      if (chatBtn && chatService) {
+
+      if (chatBtn) {
         chatBtn.onclick = async (e) => {
           e.preventDefault();
           e.stopPropagation();
+
           try {
-            const channel = await chatService.upsertDmChannel({ usernames: [user.username] });
-            // Navigate directly via URL to avoid router quirks
+            // Resolve services at click-time to avoid timing issues
+            const container =
+              api.container ||
+              (window.Discourse && window.Discourse.__container__) ||
+              null;
+
+            const chatService =
+              container && container.lookup
+                ? container.lookup("service:chat")
+                : null;
+            const router =
+              container && container.lookup
+                ? container.lookup("service:router")
+                : null;
+
+            if (!chatService) {
+              console.error("Chat service not available, cannot open DM channel");
+              return;
+            }
+
+            const channel = await chatService.upsertDmChannel({
+              usernames: [user.username],
+            });
+
             if (channel && channel.slug && channel.id) {
               const dmUrl = "/chat/c/" + channel.slug + "/" + channel.id;
               window.location.href = dmUrl;
+            } else if (router && router.transitionTo && channel) {
+              // Fallback to router navigation if URL pieces are missing
+              router.transitionTo("chat.channel", "-", channel.id, channel.slug);
             }
-            document.querySelectorAll('.discord-user-card-backdrop, .discord-user-card').forEach(el => el.remove());
+
+            document
+              .querySelectorAll('.discord-user-card-backdrop, .discord-user-card')
+              .forEach((el) => el.remove());
           } catch (error) {
             console.error("Failed to open chat:", error);
           }
