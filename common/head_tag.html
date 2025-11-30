@@ -9,9 +9,12 @@ api.onPageChange(() => {
   const sidebarEnabled = (settings.enable_online_sidebar !== false);
   const sidebarWidth = settings.sidebar_width || 240;
   const refreshInterval = settings.user_refresh_interval || 30000;
-  const isMobile = window.innerWidth <= 1024 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  const isNarrowDesktop = window.innerWidth <= 1024 && !isMobileUA;
+  const isMobile = isMobileUA;
 
   if (!sidebarEnabled) return;
+  if (isNarrowDesktop) return;
   
   const isChatPage = window.location.pathname.includes('/chat') || document.querySelector('.full-page-chat, .chat-drawer');
   
