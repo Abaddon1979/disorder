@@ -50,7 +50,6 @@ $discord-hover: #3c3f45;
   }
 }
 
-// Keep Discourse's default layout; just style colors/typography
 .chat-message {
   background-color: transparent !important;
   color: $discord-text !important;
@@ -58,24 +57,12 @@ $discord-hover: #3c3f45;
   padding: 8px 16px !important;
   margin: 0 !important;
   display: flex !important;
-  flex-direction: row;
-  flex-wrap: wrap;          // allow reply header to be its own row
   align-items: flex-start;
 
-  // Reply header ("Replied to …") should be one full-width row above avatar/username/time
-// "Replied to ..." row should line up with main message text & subsequent messages
-// 60px = 48px avatar + 12px gap; plus the 16px container padding stays as-is
-  .chat-reply {
-    flex: 0 0 100%;
-    width: 100%;
-    margin-bottom: 4px;
-    margin-left: 60px;
-  }
-
-  // Avatar on the left column
+  // Discord-style horizontal layout: avatar on the left, username + time on the top row
   .chat-message-avatar {
     border-radius: 50%;
-    margin-right: 20px; // increase gap between avatar and name/text
+    margin-right: 12px;
     flex-shrink: 0;
 
     img {
@@ -84,14 +71,12 @@ $discord-hover: #3c3f45;
     }
   }
 
-  // Main content (username/time/text) to the right of avatar
-  .chat-message-content {
-    flex: 1;
-    min-width: 0;
-  }
-
   .chat-message-info {
     color: $discord-text !important;
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 4px;
 
     .username {
       color: $discord-text !important;
@@ -120,7 +105,6 @@ $discord-hover: #3c3f45;
     }
   }
 }
-
 
 // Discord-style Message Composer (from example)
 .chat-composer-container {
@@ -239,8 +223,7 @@ $discord-hover: #3c3f45;
   }
 }
 
- // Online Users Sidebar
-#discord-online-users-sidebar,
+// Online Users Sidebar
 .discord-sidebar {
   position: fixed;
   top: 60px;
@@ -861,3 +844,4 @@ body:not(.enable-online-sidebar) {
     }
   }
 }
+
