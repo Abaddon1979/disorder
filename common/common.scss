@@ -75,7 +75,7 @@ $discord-hover: #3c3f45;
   // Avatar on the left column
   .chat-message-avatar {
     border-radius: 50%;
-    margin-right: 12px;
+    margin-right: 20px; // increase gap between avatar and name/text
     flex-shrink: 0;
 
     img {
@@ -121,12 +121,6 @@ $discord-hover: #3c3f45;
   }
 }
 
-// For follow-up messages (no avatar), indent so their text column matches the main message text
-// Base .chat-message has 16px left padding; adding 60px margin-left gives 16 + 60 = 76px,
-// which matches 16 + 48px avatar + 12px gap.
-.chat-message:not(:has(.chat-message-avatar)) {
-  margin-left: 60px !important;
-}
 
 // Discord-style Message Composer (from example)
 .chat-composer-container {
