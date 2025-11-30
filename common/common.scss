@@ -56,18 +56,27 @@ $discord-hover: #3c3f45;
   border-radius: 0 !important;
   padding: 8px 16px !important;
   margin: 0 !important;
+  display: flex !important;
+  align-items: flex-start;
 
-  // Keep Discourse's default layout; just round the avatar like Discord
+  // Discord-style horizontal layout: avatar on the left, username + time on the top row
   .chat-message-avatar {
     border-radius: 50%;
+    margin-right: 12px;
+    flex-shrink: 0;
 
     img {
       border-radius: 50%;
+      display: block;
     }
   }
 
   .chat-message-info {
     color: $discord-text !important;
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 4px;
 
     .username {
       color: $discord-text !important;
@@ -78,7 +87,7 @@ $discord-hover: #3c3f45;
     .time {
       color: $discord-text-muted;
       font-size: 0.75rem;
-      margin-left: 8px;
+      margin-left: 4px;
     }
   }
 
