@@ -57,14 +57,24 @@ $discord-hover: #3c3f45;
   border-radius: 0 !important;
   padding: 8px 16px !important;
   margin: 0 !important;
+  display: flex !important;       // avatar left, content right
+  flex-direction: row;           // force horizontal layout
+  align-items: flex-start;        // align top edges
 
   .chat-message-avatar {
     border-radius: 50%;
+    margin-right: 12px;
+    flex-shrink: 0;     // keep avatar from shrinking
 
     img {
       border-radius: 50%;
       display: block;
     }
+  }
+
+  .chat-message-content {
+    flex: 1;
+    min-width: 0;
   }
 
   .chat-message-info {
