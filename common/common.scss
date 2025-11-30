@@ -142,9 +142,9 @@ $discord-hover: #3c3f45;
 }
 
 // For follow-up messages (no avatar), align text with the first message's text column
-// Avatar width: 42px + avatar right margin: 20px + base left padding: 16px = 78px
+// Tuned so follow-ups shift LEFT from the previous 78px and visually match the first line
 .chat-message:not(:has(.chat-message-avatar)) {
-  padding-left: 78px !important;
+  padding-left: 56px !important;
 }
 
 // Discord-style Message Composer (from example)
