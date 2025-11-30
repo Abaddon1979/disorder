@@ -157,14 +157,28 @@ api.onPageChange(() => {
             // Debug: inspect the full response from upsertDmChannel / direct-message-channels.json
             console.log("[Discord Style Chat] DM channel response:", channel);
 
-            // Some installs return a wrapper with the actual chat channel under `channel`
+            // Channel info is under `channel`, as in:
+            // { "channel": { "id": 1843, ... } }
             const dmChannel = channel && channel.channel ? channel.channel : channel;
 
-            // Keep the API call but do not redirect; just log the resolved DM channel
-            console.log(
-              "[Discord Style Chat] DM channel (no redirect):",
-              dmChannel
-            );
+            if (dmChannel && dmChannel.id) {
+              const dmUrl =
+                "/chat/c/" +
+                encodeURIComponent(user.username) +
+                "/" +
+                dmChannel.id;
+              console.log("[Discord Style Chat] Navigating to DM URL:", dmUrl);
+              window.location.href = dmUrl;
+            } else {
+              console.error(
+                "[Discord Style Chat] Could not resolve DM channel id from response:",
+                channel
+              );
+            }
+
+            document
+              .querySelectorAll(".discord-user-card-backdrop, .discord-user-card")
+              .forEach((el) => el.remove());
           } catch (error) {
             console.error("Failed to open chat:", error);
           }
