@@ -106,6 +106,12 @@ $discord-hover: #3c3f45;
   }
 }
 
+// For follow-up messages (no avatar), indent so text lines up with the main message content
+// This assumes follow-up messages don't render a `.chat-message-avatar` element.
+.chat-message:not(:has(.chat-message-avatar)) {
+  padding-left: calc(16px + 32px + 12px) !important; // chat padding-left + avatar width + margin-right
+}
+
 // Discord-style Message Composer (from example)
 .chat-composer-container {
   background: #40444b !important;
