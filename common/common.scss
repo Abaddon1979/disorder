@@ -51,13 +51,13 @@ $discord-hover: #3c3f45;
 }
 
 // Keep Discourse's default layout; just style colors/typography
-.chat-message {
-  background-color: transparent !important;
-  color: $discord-text !important;
-  border-radius: 0 !important;
-  padding: 8px 16px !important;
-  margin: 0 !important;
-  display: flex !important;
+  .chat-message {
+    background-color: transparent !important;
+    color: $discord-text !important;
+    border-radius: 0 !important;
+    padding: 4px 16px !important; // tighter vertical spacing between messages
+    margin: 0 !important;
+    display: flex !important;
   flex-direction: row;
   flex-wrap: wrap;          // allow reply header to be its own row
   align-items: flex-start;
