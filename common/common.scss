@@ -122,9 +122,10 @@ $discord-hover: #3c3f45;
 }
 
 // For follow-up messages (no avatar), indent so their text column matches the main message text
-// 60px = 48px avatar width + 12px gap to text
+// Base .chat-message has 16px left padding; adding 60px margin-left gives 16 + 60 = 76px,
+// which matches 16 + 48px avatar + 12px gap.
 .chat-message:not(:has(.chat-message-avatar)) {
-  padding-left: 60px !important;
+  margin-left: 60px !important;
 }
 
 // Discord-style Message Composer (from example)
