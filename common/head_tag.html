@@ -154,6 +154,9 @@ api.onPageChange(() => {
               usernames: [user.username],
             });
 
+            // Debug: inspect the full response from upsertDmChannel / direct-message-channels.json
+            console.log("[Discord Style Chat] DM channel response:", channel);
+
             // Some installs return a wrapper with the actual chat channel under `channel`
             const dmChannel = channel && channel.channel ? channel.channel : channel;
 
