@@ -1,8 +1,4 @@
-@action
-openChat() {
-  const username = this.user.username;
-  window.location.href = `/chat/direct-messages/new?username=${username}`;
-}<script type="text/discourse-plugin" version="0.8.7">
+<script type="text/discourse-plugin" version="0.8.7">
 console.log("[Discord Style Chat] Plugin loaded");
 
 let fetchTimer = null;
@@ -124,7 +120,24 @@ api.onPageChange(() => {
         '</div>' +
         rolesHTML;
       
-      rightSection.innerHTML = '<div class="status-box"><div class="status-label">Status</div><textarea placeholder="' + (isOwnProfile ? 'Set your status...' : 'User status...') + '" ' + (isOwnProfile ? '' : 'readonly disabled') + '>' + savedStatus + '</textarea></div><div class="user-actions"><a href="/chat/direct-messages/new?username=' + user.username + '" class="btn btn-primary">💬 Chat</a><a href="/new-message?username=' + user.username + '" class="btn btn-secondary">✉️ Message</a><a href="/u/' + user.username + '" class="btn btn-secondary">👤 Profile</a></div>';
+      rightSection.innerHTML = '<div class="status-box"><div class="status-label">Status</div><textarea placeholder="' + (isOwnProfile ? 'Set your status...' : 'User status...') + '" ' + (isOwnProfile ? '' : 'readonly disabled') + '>' + savedStatus + '</textarea></div><div class="user-actions"><a href="#" class="btn btn-primary user-card-chat-btn">💬 Chat</a><a href="/new-message?username=' + user.username + '" class="btn btn-secondary">✉️ Message</a><a href="/u/' + user.username + '" class="btn btn-secondary">👤 Profile</a></div>';
+      
+      const chatService = api.container && api.container.lookup ? api.container.lookup("service:chat") : null;
+      const router = api.container && api.container.lookup ? api.container.lookup("service:router") : null;
+      const chatBtn = rightSection.querySelector('.user-card-chat-btn');
+      if (chatBtn && chatService && router) {
+        chatBtn.onclick = async (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          try {
+            const channel = await chatService.upsertDmChannel({ usernames: [user.username] });
+            router.transitionTo("chat.channel", "-", channel.id, channel.slug);
+            document.querySelectorAll('.discord-user-card-backdrop, .discord-user-card').forEach(el => el.remove());
+          } catch (error) {
+            console.error("Failed to open chat:", error);
+          }
+        };
+      }
       
       const editBtn = card.querySelector('.edit-background-btn');
       if (editBtn && isOwnProfile) editBtn.onclick = (e) => { e.stopPropagation(); openTenorPicker(username, card); };
