@@ -193,7 +193,7 @@ api.onPageChange(() => {
         if (statusTextarea) {
           statusTextarea.addEventListener("input", function () {
             const newStatus = this.value || "";
-            ajax("/status.json", {
+            ajax("/user-status.json", {
               type: "PUT",
               data: { status: newStatus },
             }).catch((e) => {
@@ -234,7 +234,7 @@ api.onPageChange(() => {
               // Persist locally for quick load
               localStorage.setItem('user_card_bg_' + username, fullUrl);
               // Persist on server so everyone sees the same background
-              ajax("/status.json", {
+              ajax("/user-status.json", {
                 type: "PUT",
                 data: { background_url: fullUrl },
               }).catch((e) => {

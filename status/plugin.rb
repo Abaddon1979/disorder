@@ -18,14 +18,20 @@ after_initialize do
 
   # Routes for the status engine
   DiscourseStatus::Engine.routes.draw do
+    # GET /status.json  -> current user's status/background (requires login)
+    get "/" => "status#current"
+
+    # GET /status/:username.json -> any user's status/background
     get "/:username" => "status#show", constraints: { username: RouteFormat.username }
+
+    # POST/PUT /status.json -> update current user's status/background
     put "/" => "status#update"
     post "/" => "status#update"
   end
 
-  # Mount engine at /status
+  # Mount engine at /user-status (avoid clashing with core /status health endpoint)
   Discourse::Application.routes.append do
-    mount ::DiscourseStatus::Engine, at: "/status"
+    mount ::DiscourseStatus::Engine, at: "/user-status"
   end
 
   # Store status and background image in user custom fields
