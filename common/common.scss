@@ -67,13 +67,13 @@ $discord-hover: #3c3f45;
     flex: 0 0 100%;
     width: 100%;
     margin-bottom: 4px;
-    margin-left: 42;         // align directly above avatar (no extra indent)
+    margin-left: 0;         // align directly above avatar (no extra indent)
     display: flex;
     align-items: center;
   }
 
   .chat-reply__excerpt {
-    margin-left: 8px;       // add space between small avatar and replied text
+    margin-left: 42px;       // add space between small avatar and replied text
   }
 
   // Avatar on the left column
