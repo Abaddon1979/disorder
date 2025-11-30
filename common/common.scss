@@ -141,10 +141,10 @@ $discord-hover: #3c3f45;
   }
 }
 
-// For follow-up messages (no avatar), indent slightly so they sit under the main message text,
-// but not as far to the right as before
+// For follow-up messages (no avatar), align text with the first message's text column
+// Avatar width: 42px + avatar right margin: 20px + base left padding: 16px = 78px
 .chat-message:not(:has(.chat-message-avatar)) {
-  padding-left: 32px !important;
+  padding-left: 78px !important;
 }
 
 // Discord-style Message Composer (from example)
@@ -264,14 +264,19 @@ $discord-hover: #3c3f45;
   }
 }
 
+ // Default header height for Discord-style layout (override per-site if needed)
+:root {
+  --discord-header-height: 60px;
+}
+
  // Online Users Sidebar
 #discord-online-users-sidebar,
 .discord-sidebar {
   position: fixed;
-  top: 60px;
+  top: var(--discord-header-height);
   right: 0;
   width: var(--sidebar-width, 240px);
-  height: calc(100vh - 60px);
+  height: calc(100vh - var(--discord-header-height));
   background-color: #19191d;
   border-left: 1px solid $discord-darkest;
   overflow-y: auto;
