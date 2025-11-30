@@ -154,14 +154,25 @@ api.onPageChange(() => {
               usernames: [user.username],
             });
 
-            // Use the same pattern you confirmed works manually: /c/chat/username/id
-            if (channel && channel.id) {
+            // Some installs return a wrapper with the actual chat channel under `channel`
+            const dmChannel = channel && channel.channel ? channel.channel : channel;
+
+            // Use the pattern you confirmed works manually: /c/chat/username/{channel.id under "channel" heading}
+            if (dmChannel && dmChannel.id) {
               const dmUrl =
-                "/c/chat/" + encodeURIComponent(user.username) + "/" + channel.id;
+                "/c/chat/" +
+                encodeURIComponent(user.username) +
+                "/" +
+                dmChannel.id;
               window.location.href = dmUrl;
-            } else if (router && router.transitionTo && channel) {
+            } else if (router && router.transitionTo && dmChannel) {
               // Fallback to router navigation if URL pieces are missing
-              router.transitionTo("chat.channel", "-", channel.id, channel.slug);
+              router.transitionTo(
+                "chat.channel",
+                "-",
+                dmChannel.id,
+                dmChannel.slug
+              );
             }
 
             document
