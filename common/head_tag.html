@@ -125,13 +125,17 @@ api.onPageChange(() => {
       const chatService = api.container && api.container.lookup ? api.container.lookup("service:chat") : null;
       const router = api.container && api.container.lookup ? api.container.lookup("service:router") : null;
       const chatBtn = rightSection.querySelector('.user-card-chat-btn');
-      if (chatBtn && chatService && router) {
+      if (chatBtn && chatService) {
         chatBtn.onclick = async (e) => {
           e.preventDefault();
           e.stopPropagation();
           try {
             const channel = await chatService.upsertDmChannel({ usernames: [user.username] });
-            router.transitionTo("chat.channel", "-", channel.id, channel.slug);
+            // Navigate directly via URL to avoid router quirks
+            if (channel && channel.slug && channel.id) {
+              const dmUrl = "/chat/c/" + channel.slug + "/" + channel.id;
+              window.location.href = dmUrl;
+            }
             document.querySelectorAll('.discord-user-card-backdrop, .discord-user-card').forEach(el => el.remove());
           } catch (error) {
             console.error("Failed to open chat:", error);
