@@ -144,6 +144,10 @@ $discord-hover: #3c3f45;
 // For follow-up messages (no avatar), align text with the first message's text column
 // Tuned so follow-ups shift LEFT from the previous 78px and visually match the first line
 .chat-message:not(:has(.chat-message-avatar)) {
+  /* follow-up messages: tighter vertical spacing and slight overlap with previous */
+  padding-top: 1px !important;
+  padding-bottom: 1px !important;
+  margin-top: -2px !important;
   padding-left: 40px !important;
 }
 

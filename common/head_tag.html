@@ -13,6 +13,15 @@ api.onPageChange(() => {
   const isNarrowDesktop = window.innerWidth <= 1024 && !isMobileUA;
   const isMobile = isMobileUA;
 
+  // Shared JSON of user statuses, stored as a single localStorage entry
+  let userStatuses = {};
+  try {
+    userStatuses = JSON.parse(localStorage.getItem("user_statuses_json") || "{}");
+  } catch (e) {
+    console.error("[Discord Style Chat] Failed to parse user_statuses_json, resetting.", e);
+    userStatuses = {};
+  }
+
   if (!sidebarEnabled) return;
   if (isNarrowDesktop) return;
   
@@ -92,7 +101,7 @@ api.onPageChange(() => {
       
       const editIconSVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>';
       
-      const savedStatus = localStorage.getItem('user_status_' + username) || '';
+      const savedStatus = userStatuses[username] || '';
       const apiCurrentUser = api.getCurrentUser ? api.getCurrentUser() : null;
       const currentUsername =
         (window.currentUser && window.currentUser.username) ||
@@ -190,7 +199,15 @@ api.onPageChange(() => {
       
       if (isOwnProfile) {
         const statusTextarea = card.querySelector('.status-box textarea');
-        if (statusTextarea) statusTextarea.addEventListener('input', function() { localStorage.setItem('user_status_' + username, this.value); });
+        if (statusTextarea)
+          statusTextarea.addEventListener("input", function () {
+            userStatuses[username] = this.value || "";
+            try {
+              localStorage.setItem("user_statuses_json", JSON.stringify(userStatuses));
+            } catch (e) {
+              console.error("[Discord Style Chat] Failed to persist user_statuses_json", e);
+            }
+          });
       }
       
       closeBtn.onclick = (e) => { e.stopPropagation(); document.querySelectorAll('.discord-user-card-backdrop, .discord-user-card').forEach(el => el.remove()); };
