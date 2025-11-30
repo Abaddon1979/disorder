@@ -72,14 +72,23 @@ $discord-hover: #3c3f45;
     align-items: center;
   }
 
+  // Fixed-size box for the replied-to avatar so reply text always starts after 42px
+  .chat-reply .chat-user-avatar__container {
+    width: 42px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start; // avatar hugs the left inside this box
+  }
+
   .chat-reply__excerpt {
-    margin-left: 42px;       // add space between small avatar and replied text
+    margin-left: 0;         // text starts immediately after 42px avatar box
   }
 
   // Avatar on the left column
   .chat-message-avatar {
     border-radius: 50%;
-    margin-right: 12px;
+    margin-right: 20px; // more gap between avatar and name/text on replies & normal messages
     flex-shrink: 0;
 
     img {
