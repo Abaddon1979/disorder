@@ -928,12 +928,63 @@ api.onPageChange(() => {
 
         let contextType = "message";
         let username = null;
-        const usernameEl =
-          target.closest &&
-          target.closest(".chat-message-info .username, .chat-message-username");
-        if (usernameEl && usernameEl.textContent) {
+
+        // Try to detect a username element inside this chat message.
+        // We support multiple common patterns used by Discourse chat:
+        //  - elements with data-user-card / data-username
+        //  - typical chat username containers / mentions
+        let usernameEl = null;
+        if (target.closest) {
+          // Try a wide set of selectors; we are already scoped to `.chat-message`
+          // so a plain `.username` here should be safe to treat as the chat name.
+          usernameEl = target.closest(
+            "[data-user-card], [data-username], .chat-message-user, .chat-message-author, .chat-message-username, .chat-message-info .username, .username, a.mention, .mention, .chat-message-avatar"
+          );
+        }
+
+        if (usernameEl) {
           contextType = "user";
-          username = usernameEl.textContent.trim().replace(/^@/, "");
+
+          // Resolve username, preferring data attributes, with a fallback scan
+          // of the whole message element so avatar clicks still get the name.
+          let resolvedUsername = "";
+
+          if (
+            usernameEl.dataset &&
+            (usernameEl.dataset.userCard || usernameEl.dataset.username)
+          ) {
+            resolvedUsername =
+              usernameEl.dataset.userCard || usernameEl.dataset.username || "";
+          } else {
+            resolvedUsername =
+              (usernameEl.textContent || "").trim().replace(/^@/, "");
+          }
+
+          // If that element had no useful text, look for a better username node
+          // inside the same chat message.
+          if (!resolvedUsername && messageEl) {
+            const innerNameEl =
+              messageEl.querySelector(
+                "[data-user-card], [data-username], .chat-message-username, .chat-message-info .username, .username"
+              );
+            if (innerNameEl) {
+              if (
+                innerNameEl.dataset &&
+                (innerNameEl.dataset.userCard || innerNameEl.dataset.username)
+              ) {
+                resolvedUsername =
+                  innerNameEl.dataset.userCard ||
+                  innerNameEl.dataset.username ||
+                  "";
+              } else {
+                resolvedUsername = (
+                  innerNameEl.textContent || ""
+                ).trim().replace(/^@/, "");
+              }
+            }
+          }
+
+          username = resolvedUsername;
         }
 
         const msgId =
@@ -947,6 +998,49 @@ api.onPageChange(() => {
           username,
           messageId: msgId,
           messageEl,
+        });
+      },
+      true
+    );
+
+    // Separate handler: right-click on usernames in the online users sidebar
+    document.addEventListener(
+      "contextmenu",
+      function (e) {
+        const target = e.target;
+
+        // Ignore if right-click is inside our custom menu
+        if (target.closest && target.closest(".discord-chat-context-menu")) {
+          return;
+        }
+
+        const userItem =
+          target.closest && target.closest(".discord-user-item");
+        if (!userItem) {
+          return;
+        }
+
+        // Only show this user menu if chat is actually present somewhere
+        const isInChat =
+          document.querySelector(".chat-container, .chat-drawer, .full-page-chat") !==
+          null;
+        if (!isInChat) {
+          return;
+        }
+
+        const uname =
+          userItem.dataset.username ||
+          userItem.getAttribute("data-username") ||
+          (userItem.textContent || "").trim();
+        if (!uname) {
+          return;
+        }
+
+        showChatContextMenu(e, {
+          type: "user",
+          username: uname,
+          messageId: "",
+          messageEl: null,
         });
       },
       true
