@@ -688,21 +688,37 @@ api.onPageChange(() => {
 
           // Trigger hover to make actions container appear
           if (msgContainer) {
+            // Try adding hover class if it exists
+            msgContainer.classList.add('is-hovered', 'hover', 'active');
+            
             // Dispatch multiple events to simulate real hover
             const mouseOver = new MouseEvent('mouseover', { bubbles: true, cancelable: true, view: window });
             const mouseEnter = new MouseEvent('mouseenter', { bubbles: true, cancelable: true, view: window });
+            const mouseMove = new MouseEvent('mousemove', { bubbles: true, cancelable: true, view: window });
             msgContainer.dispatchEvent(mouseOver);
             msgContainer.dispatchEvent(mouseEnter);
+            msgContainer.dispatchEvent(mouseMove);
           }
 
           // Longer delay to let the actions container render
           setTimeout(() => {
             // Find the actions container by data-id
-            const actionsContainer = msgId
+            let actionsContainer = msgId
               ? document.querySelector(
                   '.chat-message-actions-container[data-id="' + msgId + '"]'
                 )
               : null;
+            
+            // If not found, try to force it visible with CSS
+            if (!actionsContainer) {
+              actionsContainer = document.querySelector('.chat-message-actions-container');
+              if (actionsContainer) {
+                actionsContainer.style.display = 'flex';
+                actionsContainer.style.visibility = 'visible';
+                actionsContainer.style.opacity = '1';
+              }
+            }
+            
             console.log("[Discord Style Chat] Actions container:", actionsContainer);
 
             // First, try to toggle an existing reaction chip with this emoji
@@ -733,8 +749,14 @@ api.onPageChange(() => {
               reactBtn.click();
             }
 
+            
+            // Clean up hover classes
+            if (msgContainer) {
+              msgContainer.classList.remove('is-hovered', 'hover', 'active');
+            }
+            
             hideChatContextMenu();
-          }, 100);
+          }, 150);
         });
       });
     }
