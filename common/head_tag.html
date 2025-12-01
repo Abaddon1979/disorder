@@ -693,6 +693,15 @@ api.onPageChange(() => {
               )
             : null;
           console.log("[Discord Style Chat] Actions container:", actionsContainer);
+          
+          // Debug: show all action containers
+          if (!actionsContainer) {
+            const allContainers = document.querySelectorAll('.chat-message-actions-container');
+            console.log("[Discord Style Chat] All action containers found:", allContainers.length);
+            allContainers.forEach((c, idx) => {
+              console.log("[Discord Style Chat] Container", idx, "data-id:", c.getAttribute("data-id"));
+            });
+          }
 
           // First, try to toggle an existing reaction chip with this emoji
           let chip = actionsContainer
@@ -894,6 +903,15 @@ api.onPageChange(() => {
             )
           : null;
         console.log("[Discord Style Chat] Actions container:", actionsContainer);
+        
+        // Debug: show all action containers
+        if (!actionsContainer) {
+          const allContainers = document.querySelectorAll('.chat-message-actions-container');
+          console.log("[Discord Style Chat] All action containers found:", allContainers.length);
+          allContainers.forEach((c, idx) => {
+            console.log("[Discord Style Chat] Container", idx, "data-id:", c.getAttribute("data-id"));
+          });
+        }
 
         const replyBtn = actionsContainer
           ? actionsContainer.querySelector(".reply-btn")
@@ -969,6 +987,15 @@ api.onPageChange(() => {
             )
           : null;
         console.log("[Discord Style Chat] Actions container:", actionsContainer);
+        
+        // Debug: show all action containers
+        if (!actionsContainer) {
+          const allContainers = document.querySelectorAll('.chat-message-actions-container');
+          console.log("[Discord Style Chat] All action containers found:", allContainers.length);
+          allContainers.forEach((c, idx) => {
+            console.log("[Discord Style Chat] Container", idx, "data-id:", c.getAttribute("data-id"));
+          });
+        }
 
         const reactBtn = actionsContainer
           ? actionsContainer.querySelector(".react-btn")
