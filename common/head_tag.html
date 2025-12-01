@@ -820,7 +820,10 @@ api.onPageChange(() => {
   function refreshUserNoteIndicators() {
     // Chat messages: add/remove note icon next to usernames
     const usernameSelectors =
-      ".chat-message-info .username, .chat-message-username, .chat-message-author, .chat-message-user";
+      ".chat-message-info .username, .chat-message-username, .chat-message-author, .chat-message-user, [data-user-card], [data-username]";
+------- REPLACE
+    const usernameSelectors =
+      ".chat-message-info .username, .chat-message-username, .chat-message-author, .chat-message-user, [data-user-card], [data-username]";
     const nameEls = document.querySelectorAll(usernameSelectors);
     nameEls.forEach((el) => {
       let uname =
@@ -834,7 +837,13 @@ api.onPageChange(() => {
       const stored = localStorage.getItem(key);
       const hasNote = !!(stored && stored.trim());
 
-      const infoEl = el.closest(".chat-message-info") || el.parentElement;
+      const infoEl =
+        el.closest(".chat-message-info, .chat-message-header") ||
+        el.parentElement;
+------- REPLACE
+      const infoEl =
+        el.closest(".chat-message-info, .chat-message-header") ||
+        el.parentElement;
       if (!infoEl) {
         return;
       }
@@ -851,7 +860,13 @@ api.onPageChange(() => {
           icon.title = "You have a personal note for @" + uname;
           icon.textContent = "📝";
 
-          const timeEl = infoEl.querySelector(".time");
+          const timeEl = infoEl.querySelector(
+            ".time, .chat-message-time, .chat-message-metadata__time"
+          );
+------- REPLACE
+          const timeEl = infoEl.querySelector(
+            ".time, .chat-message-time, .chat-message-metadata__time"
+          );
           const anchor = timeEl || el;
           anchor.insertAdjacentElement("afterend", icon);
         }
@@ -892,6 +907,48 @@ api.onPageChange(() => {
         icon.remove();
       }
     });
+  }
+
+  function setupUserNoteObserver() {
+    const container =
+      document.querySelector(".chat-messages-container") ||
+      document.querySelector(".chat-messages-scroller");
+    if (!container || container.__discordNoteObserver) {
+      return;
+    }
+
+    const observer = new MutationObserver(() => {
+      refreshUserNoteIndicators();
+    });
+
+    observer.observe(container, {
+      childList: true,
+      subtree: true,
+    });
+
+    container.__discordNoteObserver = observer;
+  }
+
+  function openUserNoteEditor(username) {
+------- REPLACE
+  function setupUserNoteObserver() {
+    const container =
+      document.querySelector(".chat-messages-container") ||
+      document.querySelector(".chat-messages-scroller");
+    if (!container || container.__discordNoteObserver) {
+      return;
+    }
+
+    const observer = new MutationObserver(() => {
+      refreshUserNoteIndicators();
+    });
+
+    observer.observe(container, {
+      childList: true,
+      subtree: true,
+    });
+
+    container.__discordNoteObserver = observer;
   }
 
   function openUserNoteEditor(username) {
@@ -1174,6 +1231,21 @@ api.onPageChange(() => {
 
   // After initial render of chat + sidebar, sync note icons
   refreshUserNoteIndicators();
+  setupUserNoteObserver();
+------- REPLACE
+  // Initialize chat context menu once; it will only react inside chat areas
+  setupChatContextMenu();
+
+  if (isMobile) {
+    createMobileDrawer();
+    setupMobileDrawerGestures();
+  } else {
+    createSidebar();
+  }
+
+  // After initial render of chat + sidebar, sync note icons
+  refreshUserNoteIndicators();
+  setupUserNoteObserver();
 
   if (fetchTimer) clearInterval(fetchTimer);
   fetchTimer = setInterval(updateOnlineStatus, refreshInterval);
