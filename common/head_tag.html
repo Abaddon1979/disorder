@@ -188,26 +188,33 @@ api.onPageChange(() => {
       const editBtn = card.querySelector('.edit-background-btn');
       if (editBtn && isOwnProfile) editBtn.onclick = (e) => { e.stopPropagation(); openTenorPicker(username, card); };
       
-      if (isOwnProfile) {
-        const statusTextarea = card.querySelector('.status-box textarea');
-        if (statusTextarea) {
-          statusTextarea.addEventListener("input", function () {
-            const newStatus = this.value || "";
-            // Use custom /chat-status.json endpoint to store per-user status
+      // Save status only when the user closes the card, not while typing
+      closeBtn.onclick = (e) => {
+        e.stopPropagation();
+
+        if (isOwnProfile) {
+          const statusTextarea = card.querySelector(".status-box textarea");
+          if (statusTextarea) {
+            const newStatus = statusTextarea.value || "";
             ajax("/chat-status.json", {
               type: "PUT",
               data: { status: newStatus },
-            }).catch((e) => {
-              console.error("[Discord Style Chat] Failed to update status", e);
+            }).catch((err) => {
+              console.error(
+                "[Discord Style Chat] Failed to update status on close",
+                err
+              );
             });
-          });
+          }
         }
-      }
-      
-      closeBtn.onclick = (e) => { e.stopPropagation(); document.querySelectorAll('.discord-user-card-backdrop, .discord-user-card').forEach(el => el.remove()); };
-    });
-  }
 
+        document
+          .querySelectorAll(
+            ".discord-user-card-backdrop, .discord-user-card"
+          )
+          .forEach((el) => el.remove());
+      };
+      
   function openTenorPicker(username, cardElement) {
     const modal = document.createElement('div');
     modal.className = 'tenor-picker-modal';
