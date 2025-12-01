@@ -818,16 +818,12 @@ api.onPageChange(() => {
   }
 
   function refreshUserNoteIndicators() {
-    // Chat messages: add/remove note icon next to main author line (not replies)
+    // Chat messages: add/remove note icon tied to usernames (including replies)
     const usernameSelectors =
-      ".chat-message-info .username, .chat-message-info .chat-message-username";
+      ".chat-message-info .username, .chat-message-username, .chat-message-author, .chat-message-user, [data-user-card], [data-username]";
     const nameEls = document.querySelectorAll(usernameSelectors);
 
     nameEls.forEach((el) => {
-      // Do NOT show note icons on reply header rows at all
-      if (el.closest && el.closest(".chat-reply")) {
-        return;
-      }
 
       const raw =
         (el.dataset && (el.dataset.userCard || el.dataset.username)) ||
@@ -846,10 +842,6 @@ api.onPageChange(() => {
         el.closest(".chat-message-info, .chat-message-header") ||
         el.parentElement;
       if (!infoEl) {
-        return;
-      }
-      // Also skip any headers that are structurally inside a reply block
-      if (infoEl.closest && infoEl.closest(".chat-reply")) {
         return;
       }
 
@@ -871,19 +863,28 @@ api.onPageChange(() => {
           icon.dataset.usernameNormalized = norm;
           icon.title = "You have a personal note for @" + uname;
           icon.textContent = "📝";
-          infoEl.appendChild(icon);
         } else {
           // Keep a single icon but keep metadata in sync
           icon.dataset.username = uname;
           icon.dataset.usernameNormalized = norm;
         }
 
-        // Always position the icon immediately after the time element
+        // Always position the icon inside or immediately after the time element
         const timeEl = infoEl.querySelector(
           ".time, .chat-message-time, .chat-message-metadata__time"
         );
-        const anchor = timeEl || el;
-        anchor.insertAdjacentElement("afterend", icon);
+        if (timeEl) {
+          // Clean any extra icons that might be inside the time node itself
+          const timeIcons = timeEl.querySelectorAll(".discord-note-indicator");
+          timeIcons.forEach((node, idx) => {
+            if (idx > 0) {
+              node.remove();
+            }
+          });
+          timeEl.appendChild(icon);
+        } else {
+          el.insertAdjacentElement("afterend", icon);
+        }
       } else if (icon) {
         icon.remove();
       }
