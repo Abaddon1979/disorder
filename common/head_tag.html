@@ -688,11 +688,14 @@ api.onPageChange(() => {
 
           // Trigger hover to make actions container appear
           if (msgContainer) {
-            const mouseEnter = new MouseEvent('mouseenter', { bubbles: true, cancelable: true });
+            // Dispatch multiple events to simulate real hover
+            const mouseOver = new MouseEvent('mouseover', { bubbles: true, cancelable: true, view: window });
+            const mouseEnter = new MouseEvent('mouseenter', { bubbles: true, cancelable: true, view: window });
+            msgContainer.dispatchEvent(mouseOver);
             msgContainer.dispatchEvent(mouseEnter);
           }
 
-          // Small delay to let the actions container render
+          // Longer delay to let the actions container render
           setTimeout(() => {
             // Find the actions container by data-id
             const actionsContainer = msgId
@@ -731,7 +734,7 @@ api.onPageChange(() => {
             }
 
             hideChatContextMenu();
-          }, 50);
+          }, 100);
         });
       });
     }
@@ -898,11 +901,14 @@ api.onPageChange(() => {
 
         // Trigger hover to make actions container appear
         if (msgContainer) {
-          const mouseEnter = new MouseEvent('mouseenter', { bubbles: true, cancelable: true });
+          // Dispatch multiple events to simulate real hover
+          const mouseOver = new MouseEvent('mouseover', { bubbles: true, cancelable: true, view: window });
+          const mouseEnter = new MouseEvent('mouseenter', { bubbles: true, cancelable: true, view: window });
+          msgContainer.dispatchEvent(mouseOver);
           msgContainer.dispatchEvent(mouseEnter);
         }
 
-        // Small delay to let the actions container render
+        // Longer delay to let the actions container render
         setTimeout(() => {
           // Find the actions container by data-id
           const actionsContainer = msgId
@@ -921,7 +927,7 @@ api.onPageChange(() => {
             console.log("[Discord Style Chat] Clicking reply button");
             replyBtn.click();
           }
-        }, 50);
+        }, 100);
       } else if (action === "gif-reply" && msgElement) {
         // Reply to the message and then open the GIF picker in the composer
         // Get message ID from the parent container
@@ -932,11 +938,14 @@ api.onPageChange(() => {
 
         // Trigger hover to make actions container appear
         if (msgContainer) {
-          const mouseEnter = new MouseEvent('mouseenter', { bubbles: true, cancelable: true });
+          // Dispatch multiple events to simulate real hover
+          const mouseOver = new MouseEvent('mouseover', { bubbles: true, cancelable: true, view: window });
+          const mouseEnter = new MouseEvent('mouseenter', { bubbles: true, cancelable: true, view: window });
+          msgContainer.dispatchEvent(mouseOver);
           msgContainer.dispatchEvent(mouseEnter);
         }
 
-        // Small delay to let the actions container render, then click reply
+        // Longer delay to let the actions container render, then click reply
         setTimeout(() => {
           const actionsContainer = msgId
             ? document.querySelector(
@@ -950,7 +959,7 @@ api.onPageChange(() => {
           if (replyBtn && replyBtn.click) {
             replyBtn.click();
           }
-        }, 50);
+        }, 100);
 
         // Give the reply action a moment to wire up, then try to click the GIF button
         setTimeout(() => {
@@ -974,7 +983,7 @@ api.onPageChange(() => {
           if (gifButton && gifButton.click) {
             gifButton.click();
           }
-        }, 150);
+        }, 200);
       } else if (action === "react" && msgElement) {
         // Try to open the built-in reaction picker for this message
         console.log("[Discord Style Chat] Add Reaction action triggered");
@@ -990,11 +999,14 @@ api.onPageChange(() => {
 
         // Trigger hover to make actions container appear
         if (msgContainer) {
-          const mouseEnter = new MouseEvent('mouseenter', { bubbles: true, cancelable: true });
+          // Dispatch multiple events to simulate real hover
+          const mouseOver = new MouseEvent('mouseover', { bubbles: true, cancelable: true, view: window });
+          const mouseEnter = new MouseEvent('mouseenter', { bubbles: true, cancelable: true, view: window });
+          msgContainer.dispatchEvent(mouseOver);
           msgContainer.dispatchEvent(mouseEnter);
         }
 
-        // Small delay to let the actions container render
+        // Longer delay to let the actions container render
         setTimeout(() => {
           // Find the actions container by data-id
           const actionsContainer = msgId
@@ -1013,7 +1025,7 @@ api.onPageChange(() => {
             console.log("[Discord Style Chat] Clicking react button");
             reactBtn.click();
           }
-        }, 50);
+        }, 100);
       } else if (action === "report" && msgElement) {
         // Try to trigger the built-in flag / report action for this message
         const reportBtn =
