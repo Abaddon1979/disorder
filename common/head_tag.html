@@ -610,9 +610,6 @@ api.onPageChange(() => {
     if (username) {
       menu.dataset.username = username;
     }
-    if (messageId) {
-      menu.dataset.messageId = messageId;
-    }
 
     menu.innerHTML = buildChatContextMenuContent({
       type,
