@@ -1236,9 +1236,10 @@ api.onPageChange(() => {
     createSidebar();
   }
 
-  // After initial render of chat + sidebar, sync note icons
+  // After initial render of chat + sidebar, sync note icons.
+  // First run may happen before all messages are rendered, so run again shortly after.
   refreshUserNoteIndicators();
-  setupUserNoteObserver();
+  setTimeout(refreshUserNoteIndicators, 1000);
 
   if (fetchTimer) clearInterval(fetchTimer);
   fetchTimer = setInterval(updateOnlineStatus, refreshInterval);
