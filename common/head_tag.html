@@ -818,12 +818,17 @@ api.onPageChange(() => {
   }
 
   function refreshUserNoteIndicators() {
-    // Chat messages: add/remove note icon next to usernames
+    // Chat messages: add/remove note icon next to main author line (not replies)
     const usernameSelectors =
-      ".chat-message-info .username, .chat-message-username, .chat-message-author, .chat-message-user, [data-user-card], [data-username]";
+      ".chat-message-info .username, .chat-message-info .chat-message-username";
     const nameEls = document.querySelectorAll(usernameSelectors);
 
     nameEls.forEach((el) => {
+      // Do NOT show note icons on reply header rows at all
+      if (el.closest && el.closest(".chat-reply")) {
+        return;
+      }
+
       const raw =
         (el.dataset && (el.dataset.userCard || el.dataset.username)) ||
         (el.textContent || "");
@@ -843,8 +848,19 @@ api.onPageChange(() => {
       if (!infoEl) {
         return;
       }
+      // Also skip any headers that are structurally inside a reply block
+      if (infoEl.closest && infoEl.closest(".chat-reply")) {
+        return;
+      }
 
-      // Only ever one note icon per header; ignore username differences
+      // Remove any extra legacy note icons; we only ever want one per header
+      const allIcons = infoEl.querySelectorAll(".discord-note-indicator");
+      allIcons.forEach((node, idx) => {
+        if (idx > 0) {
+          node.remove();
+        }
+      });
+
       let icon = infoEl.querySelector(".discord-note-indicator");
 
       if (hasNote) {
@@ -855,17 +871,19 @@ api.onPageChange(() => {
           icon.dataset.usernameNormalized = norm;
           icon.title = "You have a personal note for @" + uname;
           icon.textContent = "📝";
-
-          const timeEl = infoEl.querySelector(
-            ".time, .chat-message-time, .chat-message-metadata__time"
-          );
-          const anchor = timeEl || el;
-          anchor.insertAdjacentElement("afterend", icon);
+          infoEl.appendChild(icon);
         } else {
           // Keep a single icon but keep metadata in sync
           icon.dataset.username = uname;
           icon.dataset.usernameNormalized = norm;
         }
+
+        // Always position the icon immediately after the time element
+        const timeEl = infoEl.querySelector(
+          ".time, .chat-message-time, .chat-message-metadata__time"
+        );
+        const anchor = timeEl || el;
+        anchor.insertAdjacentElement("afterend", icon);
       } else if (icon) {
         icon.remove();
       }
