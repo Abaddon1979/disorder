@@ -545,37 +545,45 @@ api.onPageChange(() => {
     const items = [];
 
     if (type === "user" && username) {
+      // Right-click on a username in chat
       items.push({
-        label: "@ Mention",
-        action: "mention",
-      });
-      items.push({
-        label: "Message",
-        action: "dm",
-      });
-      items.push({
-        label: "View Profile",
+        label: "Profile",
         action: "profile",
       });
       items.push({
-        label: "Copy Username",
-        action: "copy-username",
+        label: "Chat DM",
+        action: "chat-dm",
+      });
+      items.push({
+        label: "Forum DM",
+        action: "forum-dm",
+      });
+      items.push({
+        label: "Mention",
+        action: "mention",
+      });
+      items.push({
+        label: "Add Note",
+        action: "add-note",
       });
     } else if (type === "message") {
+      // Right-click on a chat message
+      items.push({
+        label: "Add Reaction",
+        action: "react",
+      });
       items.push({
         label: "Reply",
         action: "reply",
       });
       items.push({
-        label: "Copy Message Text",
+        label: "Copy text",
         action: "copy-message",
       });
-      if (messageId) {
-        items.push({
-          label: "Copy Message Link",
-          action: "copy-link",
-        });
-      }
+      items.push({
+        label: "🚩 Report Message",
+        action: "report",
+      });
     }
 
     // Fallback in case we somehow ended up without items
@@ -677,32 +685,11 @@ api.onPageChange(() => {
         }
       }
 
-      if (action === "mention" && uname) {
-        // Insert @mention into composer if available
-        const composerInput =
-          document.querySelector(".chat-composer textarea") ||
-          document.querySelector(".chat-composer-input textarea") ||
-          document.querySelector(".chat-composer-input");
-        if (composerInput) {
-          const atMention = "@" + uname + " ";
-          if (
-            typeof composerInput.selectionStart === "number" &&
-            typeof composerInput.selectionEnd === "number"
-          ) {
-            const start = composerInput.selectionStart;
-            const end = composerInput.selectionEnd;
-            const value = composerInput.value || "";
-            composerInput.value =
-              value.slice(0, start) + atMention + value.slice(end);
-            composerInput.selectionStart = composerInput.selectionEnd =
-              start + atMention.length;
-          } else {
-            composerInput.value = (composerInput.value || "") + atMention;
-          }
-          composerInput.focus();
-        }
-      } else if (action === "dm" && uname) {
-        // Open DM channel similar to the user card "Chat" button
+      if (action === "profile" && uname) {
+        // Open forum profile
+        window.location.href = "/u/" + encodeURIComponent(uname);
+      } else if (action === "chat-dm" && uname) {
+        // Open chat DM channel
         (async function () {
           try {
             const container =
@@ -733,8 +720,37 @@ api.onPageChange(() => {
             console.error("[Discord Style Chat] Failed to open DM", err);
           }
         })();
-      } else if (action === "profile" && uname) {
-        window.location.href = "/u/" + encodeURIComponent(uname);
+      } else if (action === "forum-dm" && uname) {
+        // Open classic forum PM composer
+        window.location.href =
+          "/new-message?username=" + encodeURIComponent(uname);
+      } else if (action === "mention" && uname) {
+        // Insert @mention into composer if available
+        const composerInput =
+          document.querySelector(".chat-composer textarea") ||
+          document.querySelector(".chat-composer-input textarea") ||
+          document.querySelector(".chat-composer-input");
+        if (composerInput) {
+          const atMention = "@" + uname + " ";
+          if (
+            typeof composerInput.selectionStart === "number" &&
+            typeof composerInput.selectionEnd === "number"
+          ) {
+            const start = composerInput.selectionStart;
+            const end = composerInput.selectionEnd;
+            const value = composerInput.value || "";
+            composerInput.value =
+              value.slice(0, start) + atMention + value.slice(end);
+            composerInput.selectionStart = composerInput.selectionEnd =
+              start + atMention.length;
+          } else {
+            composerInput.value = (composerInput.value || "") + atMention;
+          }
+          composerInput.focus();
+        }
+      } else if (action === "add-note" && uname) {
+        // Open local-only note editor for this user
+        openUserNoteEditor(uname);
       } else if (action === "copy-username" && uname) {
         copyToClipboard(uname);
       } else if (action === "copy-message" && msgElement) {
@@ -772,6 +788,24 @@ api.onPageChange(() => {
         if (replyBtn && replyBtn.click) {
           replyBtn.click();
         }
+      } else if (action === "react" && msgElement) {
+        // Try to open the built-in reaction picker for this message
+        const reactBtn =
+          msgElement.querySelector(
+            ".chat-message-reaction, .chat-message-react, [data-action=\"react\"], .chat-message-actions__button--react"
+          );
+        if (reactBtn && reactBtn.click) {
+          reactBtn.click();
+        }
+      } else if (action === "report" && msgElement) {
+        // Try to trigger the built-in flag / report action for this message
+        const reportBtn =
+          msgElement.querySelector(
+            ".chat-message-flag, [data-action=\"flag\"], [data-action=\"report\"]"
+          );
+        if (reportBtn && reportBtn.click) {
+          reportBtn.click();
+        }
       }
 
       hideChatContextMenu();
@@ -781,6 +815,75 @@ api.onPageChange(() => {
     requestAnimationFrame(function () {
       menu.classList.add("is-visible");
     });
+  }
+
+  function openUserNoteEditor(username) {
+    // Remove any existing note modal
+    document
+      .querySelectorAll(".discord-note-modal-backdrop, .discord-note-modal")
+      .forEach((el) => el.remove());
+
+    const existingNote =
+      localStorage.getItem("discord_user_note_" + username) || "";
+
+    const backdrop = document.createElement("div");
+    backdrop.className = "discord-note-modal-backdrop";
+
+    const modal = document.createElement("div");
+    modal.className = "discord-note-modal";
+    modal.innerHTML =
+      '<div class="discord-note-modal-header">' +
+      '<h3>Personal Note for @' +
+      username +
+      "</h3>" +
+      "</div>" +
+      '<div class="discord-note-modal-body">' +
+      '<textarea rows="6" placeholder="Write a note only you can see..."></textarea>' +
+      "</div>" +
+      '<div class="discord-note-modal-footer">' +
+      '<button class="discord-note-cancel">Cancel</button>' +
+      '<button class="discord-note-save">Save</button>' +
+      "</div>";
+
+    document.body.appendChild(backdrop);
+    document.body.appendChild(modal);
+
+    const textarea = modal.querySelector("textarea");
+    const cancelBtn = modal.querySelector(".discord-note-cancel");
+    const saveBtn = modal.querySelector(".discord-note-save");
+
+    if (textarea) {
+      textarea.value = existingNote;
+      textarea.focus();
+    }
+
+    function closeNoteModal() {
+      document
+        .querySelectorAll(".discord-note-modal-backdrop, .discord-note-modal")
+        .forEach((el) => el.remove());
+    }
+
+    backdrop.onclick = function () {
+      closeNoteModal();
+    };
+
+    if (cancelBtn) {
+      cancelBtn.onclick = function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        closeNoteModal();
+      };
+    }
+
+    if (saveBtn) {
+      saveBtn.onclick = function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const newValue = textarea ? textarea.value || "" : "";
+        localStorage.setItem("discord_user_note_" + username, newValue);
+        closeNoteModal();
+      };
+    }
   }
 
   function setupChatContextMenu() {
