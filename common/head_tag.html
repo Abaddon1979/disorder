@@ -660,6 +660,7 @@ api.onPageChange(() => {
     const quickButtons = menu.querySelectorAll(
       ".discord-chat-context-menu__quick-reaction"
     );
+    console.log("[Discord Style Chat] Quick reaction buttons found:", quickButtons.length);
     if (quickButtons.length) {
       quickButtons.forEach((btn) => {
         btn.addEventListener("click", function (e) {
@@ -668,7 +669,11 @@ api.onPageChange(() => {
 
           const emojiName = btn.dataset.emoji;
           const msgElement = messageEl;
+          console.log("[Discord Style Chat] Quick reaction clicked:", emojiName);
+          console.log("[Discord Style Chat] Message element:", msgElement);
+          
           if (!emojiName || !msgElement) {
+            console.log("[Discord Style Chat] Missing emoji name or message element");
             hideChatContextMenu();
             return;
           }
@@ -677,19 +682,40 @@ api.onPageChange(() => {
           let chip = msgElement.querySelector(
             '.chat-message-reaction[data-emoji-name="' + emojiName + '"]'
           );
+          console.log("[Discord Style Chat] Looking for existing chip with emoji:", emojiName);
+          console.log("[Discord Style Chat] Found chip:", chip);
+          
           if (chip && chip.click) {
+            console.log("[Discord Style Chat] Clicking existing reaction chip");
             chip.click();
             hideChatContextMenu();
             return;
           }
 
           // Otherwise, fall back to opening the built-in reaction picker for this message
+          console.log("[Discord Style Chat] No existing chip, looking for reaction button");
           const reactBtn =
             msgElement.querySelector(
               ".chat-message-react, .chat-message-actions__button--react, button[title='Add reaction'], button[aria-label*='Add reaction']"
             ) || null;
+          console.log("[Discord Style Chat] Found reaction button:", reactBtn);
+          
           if (reactBtn && reactBtn.click) {
+            console.log("[Discord Style Chat] Clicking reaction button");
             reactBtn.click();
+          } else {
+            console.log("[Discord Style Chat] No reaction button found, searching all buttons in message");
+            // Last resort: find any button that might be the reaction button
+            const allButtons = msgElement.querySelectorAll("button");
+            console.log("[Discord Style Chat] All buttons in message:", allButtons.length);
+            allButtons.forEach((b, idx) => {
+              console.log("[Discord Style Chat] Button", idx, ":", {
+                className: b.className,
+                title: b.title,
+                ariaLabel: b.getAttribute("aria-label"),
+                innerHTML: b.innerHTML.substring(0, 100)
+              });
+            });
           }
 
           hideChatContextMenu();
@@ -846,12 +872,30 @@ api.onPageChange(() => {
         copyToClipboard(url);
       } else if (action === "reply" && msgElement) {
         // Try to trigger Discourse's built-in reply button for this message
+        console.log("[Discord Style Chat] Reply action triggered");
+        console.log("[Discord Style Chat] Message element:", msgElement);
+        
         const replyBtn =
           msgElement.querySelector(
             ".chat-message-reply, .reply-btn, [data-action=\"reply\"]"
           ) || null;
+        console.log("[Discord Style Chat] Found reply button:", replyBtn);
+        
         if (replyBtn && replyBtn.click) {
+          console.log("[Discord Style Chat] Clicking reply button");
           replyBtn.click();
+        } else {
+          console.log("[Discord Style Chat] No reply button found, searching all buttons");
+          const allButtons = msgElement.querySelectorAll("button");
+          console.log("[Discord Style Chat] All buttons in message:", allButtons.length);
+          allButtons.forEach((b, idx) => {
+            console.log("[Discord Style Chat] Button", idx, ":", {
+              className: b.className,
+              title: b.title,
+              ariaLabel: b.getAttribute("aria-label"),
+              innerHTML: b.innerHTML.substring(0, 100)
+            });
+          });
         }
       } else if (action === "gif-reply" && msgElement) {
         // Reply to the message and then open the GIF picker in the composer
@@ -888,12 +932,30 @@ api.onPageChange(() => {
         }, 75);
       } else if (action === "react" && msgElement) {
         // Try to open the built-in reaction picker for this message
+        console.log("[Discord Style Chat] Add Reaction action triggered");
+        console.log("[Discord Style Chat] Message element:", msgElement);
+        
         const reactBtn =
           msgElement.querySelector(
             ".chat-message-reaction, .chat-message-react, [data-action=\"react\"], .chat-message-actions__button--react"
           );
+        console.log("[Discord Style Chat] Found reaction button:", reactBtn);
+        
         if (reactBtn && reactBtn.click) {
+          console.log("[Discord Style Chat] Clicking reaction button");
           reactBtn.click();
+        } else {
+          console.log("[Discord Style Chat] No reaction button found, searching all buttons");
+          const allButtons = msgElement.querySelectorAll("button");
+          console.log("[Discord Style Chat] All buttons in message:", allButtons.length);
+          allButtons.forEach((b, idx) => {
+            console.log("[Discord Style Chat] Button", idx, ":", {
+              className: b.className,
+              title: b.title,
+              ariaLabel: b.getAttribute("aria-label"),
+              innerHTML: b.innerHTML.substring(0, 100)
+            });
+          });
         }
       } else if (action === "report" && msgElement) {
         // Try to trigger the built-in flag / report action for this message
