@@ -818,6 +818,21 @@ api.onPageChange(() => {
   }
 
   function refreshUserNoteIndicators() {
+    // First, clean up any misplaced note icons in chat headers
+    // We only want icons that live inside the time element; anything else is removed.
+    document
+      .querySelectorAll(
+        ".chat-message-info .discord-note-indicator, .chat-message-header .discord-note-indicator"
+      )
+      .forEach((icon) => {
+        const inTime = icon.closest(
+          ".time, .chat-message-time, .chat-message-metadata__time"
+        );
+        if (!inTime) {
+          icon.remove();
+        }
+      });
+
     // Chat messages: add/remove note icon tied to usernames (including replies)
     const usernameSelectors =
       ".chat-message-info .username, .chat-message-username, .chat-message-author, .chat-message-user, [data-user-card], [data-username]";
