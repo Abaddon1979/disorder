@@ -1125,3 +1125,12 @@ body.discord-chat-context-open {
     }
   }
 }
+
+// Small note icon next to usernames and sidebar entries
+.discord-note-indicator {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  color: $discord-text-muted;
+  font-size: 12px;
+}

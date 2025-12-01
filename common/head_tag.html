@@ -817,6 +817,83 @@ api.onPageChange(() => {
     });
   }
 
+  function refreshUserNoteIndicators() {
+    // Chat messages: add/remove note icon next to usernames
+    const usernameSelectors =
+      ".chat-message-info .username, .chat-message-username, .chat-message-author, .chat-message-user";
+    const nameEls = document.querySelectorAll(usernameSelectors);
+    nameEls.forEach((el) => {
+      let uname =
+        (el.dataset && (el.dataset.userCard || el.dataset.username)) ||
+        (el.textContent || "").trim().replace(/^@/, "");
+      if (!uname) {
+        return;
+      }
+
+      const key = "discord_user_note_" + uname;
+      const stored = localStorage.getItem(key);
+      const hasNote = !!(stored && stored.trim());
+
+      const infoEl = el.closest(".chat-message-info") || el.parentElement;
+      if (!infoEl) {
+        return;
+      }
+
+      let icon = infoEl.querySelector(
+        '.discord-note-indicator[data-username="' + uname + '"]'
+      );
+
+      if (hasNote) {
+        if (!icon) {
+          icon = document.createElement("span");
+          icon.className = "discord-note-indicator";
+          icon.dataset.username = uname;
+          icon.title = "You have a personal note for @" + uname;
+          icon.textContent = "📝";
+
+          const timeEl = infoEl.querySelector(".time");
+          const anchor = timeEl || el;
+          anchor.insertAdjacentElement("afterend", icon);
+        }
+      } else if (icon) {
+        icon.remove();
+      }
+    });
+
+    // Sidebar / mobile drawer: add/remove icon at end of user row
+    const sidebarItems = document.querySelectorAll(".discord-user-item");
+    sidebarItems.forEach((item) => {
+      const uname =
+        item.dataset.username ||
+        item.getAttribute("data-username") ||
+        (item.textContent || "").trim();
+      if (!uname) {
+        return;
+      }
+
+      const key = "discord_user_note_" + uname;
+      const stored = localStorage.getItem(key);
+      const hasNote = !!(stored && stored.trim());
+
+      let icon = item.querySelector(
+        '.discord-note-indicator[data-username="' + uname + '"]'
+      );
+
+      if (hasNote) {
+        if (!icon) {
+          icon = document.createElement("span");
+          icon.className = "discord-note-indicator";
+          icon.dataset.username = uname;
+          icon.title = "You have a personal note for @" + uname;
+          icon.textContent = "📝";
+          item.appendChild(icon);
+        }
+      } else if (icon) {
+        icon.remove();
+      }
+    });
+  }
+
   function openUserNoteEditor(username) {
     // Remove any existing note modal
     document
@@ -879,9 +956,18 @@ api.onPageChange(() => {
       saveBtn.onclick = function (e) {
         e.preventDefault();
         e.stopPropagation();
-        const newValue = textarea ? textarea.value || "" : "";
-        localStorage.setItem("discord_user_note_" + username, newValue);
+        const newValue = textarea ? textarea.value.trim() : "";
+        const key = "discord_user_note_" + username;
+
+        if (newValue) {
+          localStorage.setItem(key, newValue);
+        } else {
+          localStorage.removeItem(key);
+        }
+
         closeNoteModal();
+        // Update any visible note icons for this user
+        refreshUserNoteIndicators();
       };
     }
   }
@@ -1085,6 +1171,10 @@ api.onPageChange(() => {
   } else {
     createSidebar();
   }
+
+  // After initial render of chat + sidebar, sync note icons
+  refreshUserNoteIndicators();
+
   if (fetchTimer) clearInterval(fetchTimer);
   fetchTimer = setInterval(updateOnlineStatus, refreshInterval);
 });
