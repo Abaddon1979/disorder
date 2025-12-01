@@ -487,6 +487,9 @@ api.onPageChange(() => {
       if (count) {
         count.textContent = allUsers.length;
       }
+
+      // Re-apply note icons after mobile drawer user list reloads
+      refreshUserNoteIndicators();
     });
   }
 
@@ -926,6 +929,22 @@ api.onPageChange(() => {
       } else if (icon) {
         icon.remove();
       }
+    });
+
+    // Make note icons clickable to open the note editor
+    document.querySelectorAll(".discord-note-indicator").forEach((icon) => {
+      const uname =
+        (icon.dataset &&
+          (icon.dataset.username || icon.dataset.usernameNormalized)) ||
+        "";
+      icon.onclick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const username = (uname || "").trim().replace(/^@/, "");
+        if (username) {
+          openUserNoteEditor(username);
+        }
+      };
     });
   }
 
