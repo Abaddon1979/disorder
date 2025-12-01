@@ -186,10 +186,15 @@ api.onPageChange(() => {
       }
       
       const editBtn = card.querySelector('.edit-background-btn');
-      if (editBtn && isOwnProfile) editBtn.onclick = (e) => { e.stopPropagation(); openTenorPicker(username, card); };
+      if (editBtn && isOwnProfile) {
+        editBtn.onclick = (e) => {
+          e.stopPropagation();
+          openTenorPicker(username, card);
+        };
+      }
       
-      // Save status only when the user closes the card, not while typing
-      closeBtn.onclick = (e) => {
+      // Save status whenever the card is closed, either by X button or clicking the backdrop
+      const handleCardClose = (e) => {
         e.stopPropagation();
 
         if (isOwnProfile) {
@@ -214,6 +219,9 @@ api.onPageChange(() => {
           )
           .forEach((el) => el.remove());
       };
+
+      closeBtn.onclick = handleCardClose;
+      backdrop.onclick = handleCardClose;
     });
   }
 
