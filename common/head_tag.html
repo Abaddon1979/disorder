@@ -678,12 +678,12 @@ api.onPageChange(() => {
             return;
           }
 
-          // Get message ID to find the actions container
-          const msgId =
-            msgElement.dataset.messageId ||
-            msgElement.dataset.id ||
-            msgElement.getAttribute("data-id") ||
-            "";
+          // Get message ID from the parent container
+          const msgContainer = msgElement.closest(".chat-message-container");
+          const msgId = msgContainer
+            ? msgContainer.dataset.id || msgContainer.getAttribute("data-id") || ""
+            : "";
+          console.log("[Discord Style Chat] Message container:", msgContainer);
           console.log("[Discord Style Chat] Message ID:", msgId);
 
           // Find the actions container by data-id
@@ -879,12 +879,12 @@ api.onPageChange(() => {
         console.log("[Discord Style Chat] Reply action triggered");
         console.log("[Discord Style Chat] Message element:", msgElement);
         
-        // Get message ID to find the actions container
-        const msgId =
-          msgElement.dataset.messageId ||
-          msgElement.dataset.id ||
-          msgElement.getAttribute("data-id") ||
-          "";
+        // Get message ID from the parent container
+        const msgContainer = msgElement.closest(".chat-message-container");
+        const msgId = msgContainer
+          ? msgContainer.dataset.id || msgContainer.getAttribute("data-id") || ""
+          : "";
+        console.log("[Discord Style Chat] Message container:", msgContainer);
         console.log("[Discord Style Chat] Message ID:", msgId);
 
         // Find the actions container by data-id
@@ -906,12 +906,11 @@ api.onPageChange(() => {
         }
       } else if (action === "gif-reply" && msgElement) {
         // Reply to the message and then open the GIF picker in the composer
-        // Get message ID to find the actions container
-        const msgId =
-          msgElement.dataset.messageId ||
-          msgElement.dataset.id ||
-          msgElement.getAttribute("data-id") ||
-          "";
+        // Get message ID from the parent container
+        const msgContainer = msgElement.closest(".chat-message-container");
+        const msgId = msgContainer
+          ? msgContainer.dataset.id || msgContainer.getAttribute("data-id") || ""
+          : "";
 
         // Find the actions container by data-id
         const actionsContainer = msgId
@@ -955,12 +954,12 @@ api.onPageChange(() => {
         console.log("[Discord Style Chat] Add Reaction action triggered");
         console.log("[Discord Style Chat] Message element:", msgElement);
         
-        // Get message ID to find the actions container
-        const msgId =
-          msgElement.dataset.messageId ||
-          msgElement.dataset.id ||
-          msgElement.getAttribute("data-id") ||
-          "";
+        // Get message ID from the parent container
+        const msgContainer = msgElement.closest(".chat-message-container");
+        const msgId = msgContainer
+          ? msgContainer.dataset.id || msgContainer.getAttribute("data-id") || ""
+          : "";
+        console.log("[Discord Style Chat] Message container:", msgContainer);
         console.log("[Discord Style Chat] Message ID:", msgId);
 
         // Find the actions container by data-id
