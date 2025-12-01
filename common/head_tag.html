@@ -863,27 +863,29 @@ api.onPageChange(() => {
           icon.dataset.usernameNormalized = norm;
           icon.title = "You have a personal note for @" + uname;
           icon.textContent = "📝";
+
+          // Only insert the icon once to avoid endless MutationObserver loops
+          const timeEl = infoEl.querySelector(
+            ".time, .chat-message-time, .chat-message-metadata__time"
+          );
+          if (timeEl) {
+            // Clean any extra icons that might be inside the time node itself
+            const timeIcons =
+              timeEl.querySelectorAll(".discord-note-indicator");
+            timeIcons.forEach((node, idx) => {
+              if (idx > 0) {
+                node.remove();
+              }
+            });
+            timeEl.appendChild(icon);
+          } else {
+            el.insertAdjacentElement("afterend", icon);
+          }
         } else {
-          // Keep a single icon but keep metadata in sync
+          // Keep a single icon but keep metadata in sync,
+          // do NOT re-append to DOM to avoid infinite mutation cycles
           icon.dataset.username = uname;
           icon.dataset.usernameNormalized = norm;
-        }
-
-        // Always position the icon inside or immediately after the time element
-        const timeEl = infoEl.querySelector(
-          ".time, .chat-message-time, .chat-message-metadata__time"
-        );
-        if (timeEl) {
-          // Clean any extra icons that might be inside the time node itself
-          const timeIcons = timeEl.querySelectorAll(".discord-note-indicator");
-          timeIcons.forEach((node, idx) => {
-            if (idx > 0) {
-              node.remove();
-            }
-          });
-          timeEl.appendChild(icon);
-        } else {
-          el.insertAdjacentElement("afterend", icon);
         }
       } else if (icon) {
         icon.remove();
