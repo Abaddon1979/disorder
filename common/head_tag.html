@@ -378,6 +378,9 @@ api.onPageChange(() => {
         item.onclick = (e) => { e.preventDefault(); e.stopPropagation(); showUserCard(item.dataset.username, e); };
       });
       count.textContent = allUsers.length;
+
+      // Re-apply note icons after desktop sidebar user list reloads
+      refreshUserNoteIndicators();
     });
   }
 
@@ -879,6 +882,17 @@ api.onPageChange(() => {
       icon.dataset.usernameNormalized = norm;
       icon.title = "You have a personal note for @" + uname;
       icon.textContent = "📝";
+      icon.style.cursor = "pointer";
+
+      // Make the chat note icon clickable to open the note editor
+      icon.onclick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const username = (uname || "").trim().replace(/^@/, "");
+        if (username) {
+          openUserNoteEditor(username);
+        }
+      };
 
       userEl.insertAdjacentElement("afterend", icon);
     });
