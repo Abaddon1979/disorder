@@ -476,11 +476,69 @@ body:not(.enable-online-sidebar) {
 }
 
 
-// Override chat surfaces to #19191d
+ // Override chat surfaces to #19191d
 .chat-messages-scroller,
 .chat-messages-container,
 .c-navbar-container {
   background: #19191d !important;
+}
+
+// Discord-style chat right-click context menu
+.discord-chat-context-menu {
+  position: fixed;
+  z-index: 100000;
+  min-width: 180px;
+  max-width: 260px;
+  padding: 4px 0;
+  background-color: $discord-darkest;
+  border: 1px solid darken($discord-darkest, 8%);
+  border-radius: 4px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  color: $discord-text;
+  font-family: 'Quicksand', sans-serif;
+  font-size: 13px;
+  user-select: none;
+  opacity: 0;
+  transform: scale(0.98);
+  transform-origin: top left;
+  transition: opacity 0.08s ease-out, transform 0.08s ease-out;
+  pointer-events: none;
+}
+
+.discord-chat-context-menu.is-visible {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
+.discord-chat-context-menu__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.discord-chat-context-menu__item {
+  padding: 6px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  color: $discord-text;
+
+  &:hover {
+    background-color: $discord-hover;
+  }
+
+  &.is-disabled {
+    opacity: 0.5;
+    cursor: default;
+
+    &:hover {
+      background-color: transparent;
+    }
+  }
+}
+
+body.discord-chat-context-open {
+  cursor: default;
 }
 
 // Hide online users sidebar on mobile/tablet

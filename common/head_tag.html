@@ -19,6 +19,12 @@ api.onPageChange(() => {
   const isChatPage = window.location.pathname.includes('/chat') || document.querySelector('.full-page-chat, .chat-drawer');
   
   if (!isChatPage) {
+    // Ensure any chat context menu is removed when leaving chat
+    const existingMenu = document.querySelector('.discord-chat-context-menu');
+    if (existingMenu) {
+      existingMenu.remove();
+    }
+
     const existing = document.getElementById('discord-online-users-sidebar');
     if (existing) existing.remove();
     const mobileDrawer = document.getElementById('discord-online-users-drawer');
@@ -523,6 +529,358 @@ api.onPageChange(() => {
       }
     });
   }
+
+  // Discord-style chat right-click context menu (only for chat messages, not sidebar)
+  function hideChatContextMenu() {
+    const menu = document.querySelector(".discord-chat-context-menu");
+    if (menu) {
+      menu.classList.remove("is-visible");
+      // Small delay before removing to allow CSS transition if desired
+      menu.remove();
+    }
+    document.body.classList.remove("discord-chat-context-open");
+  }
+
+  function buildChatContextMenuContent({ type, username, messageId, messageEl }) {
+    const items = [];
+
+    if (type === "user" && username) {
+      items.push({
+        label: "@ Mention",
+        action: "mention",
+      });
+      items.push({
+        label: "Message",
+        action: "dm",
+      });
+      items.push({
+        label: "View Profile",
+        action: "profile",
+      });
+      items.push({
+        label: "Copy Username",
+        action: "copy-username",
+      });
+    } else if (type === "message") {
+      items.push({
+        label: "Reply",
+        action: "reply",
+      });
+      items.push({
+        label: "Copy Message Text",
+        action: "copy-message",
+      });
+      if (messageId) {
+        items.push({
+          label: "Copy Message Link",
+          action: "copy-link",
+        });
+      }
+    }
+
+    // Fallback in case we somehow ended up without items
+    if (!items.length) {
+      items.push({
+        label: "No actions available",
+        action: "noop",
+        disabled: true,
+      });
+    }
+
+    let html = '<ul class="discord-chat-context-menu__list">';
+    items.forEach((item) => {
+      const disabledClass = item.disabled ? " is-disabled" : "";
+      html +=
+        '<li class="discord-chat-context-menu__item' +
+        disabledClass +
+        '" data-action="' +
+        (item.action || "") +
+        '">' +
+        item.label +
+        "</li>";
+    });
+    html += "</ul>";
+    return html;
+  }
+
+  function showChatContextMenu(event, { type, username, messageId, messageEl }) {
+    hideChatContextMenu();
+    event.preventDefault();
+    event.stopPropagation();
+
+    const menu = document.createElement("div");
+    menu.className = "discord-chat-context-menu";
+    menu.dataset.contextType = type || "";
+    if (username) {
+      menu.dataset.username = username;
+    }
+    if (messageId) {
+      menu.dataset.messageId = messageId;
+    }
+
+    menu.innerHTML = buildChatContextMenuContent({
+      type,
+      username,
+      messageId,
+      messageEl,
+    });
+
+    document.body.appendChild(menu);
+    document.body.classList.add("discord-chat-context-open");
+
+    // Position the menu near the cursor, adjusting for viewport edges
+    const clickX = event.clientX;
+    const clickY = event.clientY;
+    const menuRect = menu.getBoundingClientRect();
+    let left = clickX;
+    let top = clickY;
+
+    if (left + menuRect.width > window.innerWidth) {
+      left = Math.max(0, window.innerWidth - menuRect.width - 4);
+    }
+    if (top + menuRect.height > window.innerHeight) {
+      top = Math.max(0, window.innerHeight - menuRect.height - 4);
+    }
+
+    menu.style.left = left + "px";
+    menu.style.top = top + "px";
+
+    // Handle menu item clicks
+    menu.addEventListener("click", function (e) {
+      const item = e.target.closest(".discord-chat-context-menu__item");
+      if (!item || item.classList.contains("is-disabled")) {
+        return;
+      }
+      const action = item.dataset.action;
+      const uname = menu.dataset.username || username || "";
+      const msgId = menu.dataset.messageId || messageId || "";
+      const msgElement = messageEl;
+
+      // Simple helpers
+      function copyToClipboard(text) {
+        if (!text) return;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).catch(function (err) {
+            console.error("[Discord Style Chat] Failed to copy text", err);
+          });
+        } else {
+          const temp = document.createElement("textarea");
+          temp.value = text;
+          document.body.appendChild(temp);
+          temp.select();
+          try {
+            document.execCommand("copy");
+          } catch (e) {
+            console.error("[Discord Style Chat] execCommand copy failed", e);
+          }
+          document.body.removeChild(temp);
+        }
+      }
+
+      if (action === "mention" && uname) {
+        // Insert @mention into composer if available
+        const composerInput =
+          document.querySelector(".chat-composer textarea") ||
+          document.querySelector(".chat-composer-input textarea") ||
+          document.querySelector(".chat-composer-input");
+        if (composerInput) {
+          const atMention = "@" + uname + " ";
+          if (
+            typeof composerInput.selectionStart === "number" &&
+            typeof composerInput.selectionEnd === "number"
+          ) {
+            const start = composerInput.selectionStart;
+            const end = composerInput.selectionEnd;
+            const value = composerInput.value || "";
+            composerInput.value =
+              value.slice(0, start) + atMention + value.slice(end);
+            composerInput.selectionStart = composerInput.selectionEnd =
+              start + atMention.length;
+          } else {
+            composerInput.value = (composerInput.value || "") + atMention;
+          }
+          composerInput.focus();
+        }
+      } else if (action === "dm" && uname) {
+        // Open DM channel similar to the user card "Chat" button
+        (async function () {
+          try {
+            const container =
+              api.container ||
+              (window.Discourse && window.Discourse.__container__) ||
+              null;
+            const chatService =
+              container && container.lookup
+                ? container.lookup("service:chat")
+                : null;
+            if (!chatService) {
+              console.error(
+                "[Discord Style Chat] Chat service not available for DM from context menu"
+              );
+              return;
+            }
+            const channel = await chatService.upsertDmChannel({
+              usernames: [uname],
+            });
+            const dmChannel =
+              channel && channel.channel ? channel.channel : channel;
+            if (dmChannel && dmChannel.id) {
+              const dmUrl =
+                "/chat/c/" + encodeURIComponent(uname) + "/" + dmChannel.id;
+              window.location.href = dmUrl;
+            }
+          } catch (err) {
+            console.error("[Discord Style Chat] Failed to open DM", err);
+          }
+        })();
+      } else if (action === "profile" && uname) {
+        window.location.href = "/u/" + encodeURIComponent(uname);
+      } else if (action === "copy-username" && uname) {
+        copyToClipboard(uname);
+      } else if (action === "copy-message" && msgElement) {
+        const textEl =
+          msgElement.querySelector(".chat-message-text") || msgElement;
+        copyToClipboard(textEl.textContent.trim());
+      } else if (action === "copy-link" && msgId) {
+        // Best-effort message link; Discourse chat uses /chat/channel/:id?messageId=:messageId
+        const channelIdEl = document.querySelector(
+          ".chat-channel-header, .chat-header"
+        );
+        let channelId = "";
+        if (channelIdEl && channelIdEl.dataset && channelIdEl.dataset.channelId) {
+          channelId = channelIdEl.dataset.channelId;
+        }
+        const url =
+          window.location.origin +
+          (channelId
+            ? "/chat/channel/" +
+              encodeURIComponent(channelId) +
+              "?messageId=" +
+              encodeURIComponent(msgId)
+            : window.location.pathname +
+              (window.location.search
+                ? window.location.search + "&"
+                : "?") +
+              "messageId=" +
+              encodeURIComponent(msgId));
+        copyToClipboard(url);
+      } else if (action === "reply" && msgElement) {
+        // Try to trigger Discourse's built-in reply button for this message
+        const replyBtn =
+          msgElement.querySelector(".chat-message-reply") ||
+          msgElement.querySelector('[data-action="reply"]');
+        if (replyBtn && replyBtn.click) {
+          replyBtn.click();
+        }
+      }
+
+      hideChatContextMenu();
+    });
+
+    // Show with a small fade-in class
+    requestAnimationFrame(function () {
+      menu.classList.add("is-visible");
+    });
+  }
+
+  function setupChatContextMenu() {
+    if (window.__discordChatContextMenuInitialized) {
+      return;
+    }
+    window.__discordChatContextMenuInitialized = true;
+
+    // Global contextmenu handler, but restrict strictly to chat messages
+    document.addEventListener(
+      "contextmenu",
+      function (e) {
+        const target = e.target;
+
+        // Ignore if right-click is inside our custom menu
+        if (target.closest && target.closest(".discord-chat-context-menu")) {
+          return;
+        }
+
+        // Only respond when in a chat context
+        const isInChat =
+          document.querySelector(".chat-container, .chat-drawer, .full-page-chat") !==
+          null;
+        if (!isInChat) {
+          return;
+        }
+
+        const messageEl = target.closest
+          ? target.closest(".chat-message")
+          : null;
+        if (!messageEl) {
+          return;
+        }
+
+        // Do NOT trigger for sidebar items or other non-chat things
+        if (
+          messageEl.closest &&
+          messageEl.closest("#discord-online-users-sidebar, .discord-sidebar")
+        ) {
+          return;
+        }
+
+        let contextType = "message";
+        let username = null;
+        const usernameEl =
+          target.closest &&
+          target.closest(".chat-message-info .username, .chat-message-username");
+        if (usernameEl && usernameEl.textContent) {
+          contextType = "user";
+          username = usernameEl.textContent.trim().replace(/^@/, "");
+        }
+
+        const msgId =
+          messageEl.dataset.messageId ||
+          messageEl.dataset.id ||
+          messageEl.getAttribute("data-id") ||
+          "";
+
+        showChatContextMenu(e, {
+          type: contextType,
+          username,
+          messageId: msgId,
+          messageEl,
+        });
+      },
+      true
+    );
+
+    // Hide on global click / scroll / resize / escape
+    document.addEventListener(
+      "click",
+      function (e) {
+        if (
+          e.target &&
+          e.target.closest &&
+          e.target.closest(".discord-chat-context-menu")
+        ) {
+          return;
+        }
+        hideChatContextMenu();
+      },
+      true
+    );
+
+    document.addEventListener(
+      "keydown",
+      function (e) {
+        if (e.key === "Escape") {
+          hideChatContextMenu();
+        }
+      },
+      true
+    );
+
+    window.addEventListener("scroll", hideChatContextMenu, true);
+    window.addEventListener("resize", hideChatContextMenu, true);
+  }
+
+  // Initialize chat context menu once; it will only react inside chat areas
+  setupChatContextMenu();
 
   if (isMobile) {
     createMobileDrawer();
