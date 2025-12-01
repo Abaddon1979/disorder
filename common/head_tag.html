@@ -666,43 +666,31 @@ api.onPageChange(() => {
           e.preventDefault();
           e.stopPropagation();
 
-          const emojiShortcode = btn.dataset.emoji;
-          const msgId = menu.dataset.messageId || messageId || "";
-          if (!emojiShortcode || !msgId) {
+          const emojiName = btn.dataset.emoji;
+          const msgElement = messageEl;
+          if (!emojiName || !msgElement) {
             hideChatContextMenu();
             return;
           }
 
-          // Try to send the reaction directly to the chat reactions API.
-          // If that fails for any reason, fall back to opening the built-in
-          // reaction picker for the message.
-          (async function () {
-            let reacted = false;
-            try {
-              if (typeof ajax === "function") {
-                await ajax("/chat/api/messages/" + msgId + "/reactions", {
-                  type: "PUT",
-                  data: { emoji: emojiShortcode },
-                });
-                reacted = true;
-              }
-            } catch (err) {
-              console.error(
-                "[Discord Style Chat] Quick reaction failed, falling back to picker",
-                err
-              );
-            }
+          // First, try to toggle an existing reaction chip with this emoji
+          let chip = msgElement.querySelector(
+            '.chat-message-reaction[data-emoji-name="' + emojiName + '"]'
+          );
+          if (chip && chip.click) {
+            chip.click();
+            hideChatContextMenu();
+            return;
+          }
 
-            if (!reacted && messageEl) {
-              const reactBtn =
-                messageEl.querySelector(
-                  '.chat-message-reaction, .chat-message-react, [data-action="react"], .chat-message-actions__button--react'
-                ) || null;
-              if (reactBtn && reactBtn.click) {
-                reactBtn.click();
-              }
-            }
-          })();
+          // Otherwise, fall back to opening the built-in reaction picker for this message
+          const reactBtn =
+            msgElement.querySelector(
+              ".chat-message-react, .chat-message-actions__button--react, button[title='Add reaction'], button[aria-label*='Add reaction']"
+            ) || null;
+          if (reactBtn && reactBtn.click) {
+            reactBtn.click();
+          }
 
           hideChatContextMenu();
         });
@@ -859,26 +847,41 @@ api.onPageChange(() => {
       } else if (action === "reply" && msgElement) {
         // Try to trigger Discourse's built-in reply button for this message
         const replyBtn =
-          msgElement.querySelector(".chat-message-reply") ||
-          msgElement.querySelector('[data-action="reply"]');
+          msgElement.querySelector(
+            ".chat-message-reply, .reply-btn, [data-action=\"reply\"]"
+          ) || null;
         if (replyBtn && replyBtn.click) {
           replyBtn.click();
         }
       } else if (action === "gif-reply" && msgElement) {
         // Reply to the message and then open the GIF picker in the composer
         const replyBtn =
-          msgElement.querySelector(".chat-message-reply") ||
-          msgElement.querySelector('[data-action="reply"]');
+          msgElement.querySelector(
+            ".chat-message-reply, .reply-btn, [data-action=\"reply\"]"
+          ) || null;
         if (replyBtn && replyBtn.click) {
           replyBtn.click();
         }
 
         // Give the reply action a moment to wire up, then try to click the GIF button
         setTimeout(() => {
-          const gifButton =
+          // First, try known GIF button selectors
+          let gifButton =
             document.querySelector(
               ".chat-composer [data-action='open-gifs'], .chat-composer [data-action='open-gif'], .chat-composer__gif-btn, .chat-composer-button--gif, button.chat-composer-gifs-button"
             ) || null;
+
+          // Fallback: search for a composer button with label text "Insert GIF"
+          if (!gifButton) {
+            const candidates = document.querySelectorAll(
+              ".chat-composer button, .chat-composer .btn, .chat-composer .btn-flat"
+            );
+            gifButton = Array.from(candidates).find((btn) => {
+              const txt = (btn.textContent || "").trim();
+              return txt.includes("Insert GIF");
+            });
+          }
+
           if (gifButton && gifButton.click) {
             gifButton.click();
           }
