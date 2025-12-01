@@ -686,52 +686,52 @@ api.onPageChange(() => {
           console.log("[Discord Style Chat] Message container:", msgContainer);
           console.log("[Discord Style Chat] Message ID:", msgId);
 
-          // Find the actions container by data-id
-          const actionsContainer = msgId
-            ? document.querySelector(
-                '.chat-message-actions-container[data-id="' + msgId + '"]'
-              )
-            : null;
-          console.log("[Discord Style Chat] Actions container:", actionsContainer);
-          
-          // Debug: show all action containers
-          if (!actionsContainer) {
-            const allContainers = document.querySelectorAll('.chat-message-actions-container');
-            console.log("[Discord Style Chat] All action containers found:", allContainers.length);
-            allContainers.forEach((c, idx) => {
-              console.log("[Discord Style Chat] Container", idx, "data-id:", c.getAttribute("data-id"));
-            });
+          // Trigger hover to make actions container appear
+          if (msgContainer) {
+            const mouseEnter = new MouseEvent('mouseenter', { bubbles: true, cancelable: true });
+            msgContainer.dispatchEvent(mouseEnter);
           }
 
-          // First, try to toggle an existing reaction chip with this emoji
-          let chip = actionsContainer
-            ? actionsContainer.querySelector(
-                '.chat-message-reaction[data-emoji-name="' + emojiName + '"]'
-              )
-            : null;
-          console.log("[Discord Style Chat] Looking for existing chip with emoji:", emojiName);
-          console.log("[Discord Style Chat] Found chip:", chip);
-          
-          if (chip && chip.click) {
-            console.log("[Discord Style Chat] Clicking existing reaction chip");
-            chip.click();
+          // Small delay to let the actions container render
+          setTimeout(() => {
+            // Find the actions container by data-id
+            const actionsContainer = msgId
+              ? document.querySelector(
+                  '.chat-message-actions-container[data-id="' + msgId + '"]'
+                )
+              : null;
+            console.log("[Discord Style Chat] Actions container:", actionsContainer);
+
+            // First, try to toggle an existing reaction chip with this emoji
+            let chip = actionsContainer
+              ? actionsContainer.querySelector(
+                  '.chat-message-reaction[data-emoji-name="' + emojiName + '"]'
+                )
+              : null;
+            console.log("[Discord Style Chat] Looking for existing chip with emoji:", emojiName);
+            console.log("[Discord Style Chat] Found chip:", chip);
+            
+            if (chip && chip.click) {
+              console.log("[Discord Style Chat] Clicking existing reaction chip");
+              chip.click();
+              hideChatContextMenu();
+              return;
+            }
+
+            // Otherwise, open the reaction picker
+            console.log("[Discord Style Chat] No existing chip, looking for react button");
+            const reactBtn = actionsContainer
+              ? actionsContainer.querySelector(".react-btn, .chat-message-react")
+              : null;
+            console.log("[Discord Style Chat] Found react button:", reactBtn);
+            
+            if (reactBtn && reactBtn.click) {
+              console.log("[Discord Style Chat] Clicking react button");
+              reactBtn.click();
+            }
+
             hideChatContextMenu();
-            return;
-          }
-
-          // Otherwise, open the reaction picker
-          console.log("[Discord Style Chat] No existing chip, looking for react button");
-          const reactBtn = actionsContainer
-            ? actionsContainer.querySelector(".react-btn, .chat-message-react")
-            : null;
-          console.log("[Discord Style Chat] Found react button:", reactBtn);
-          
-          if (reactBtn && reactBtn.click) {
-            console.log("[Discord Style Chat] Clicking react button");
-            reactBtn.click();
-          }
-
-          hideChatContextMenu();
+          }, 50);
         });
       });
     }
@@ -896,32 +896,32 @@ api.onPageChange(() => {
         console.log("[Discord Style Chat] Message container:", msgContainer);
         console.log("[Discord Style Chat] Message ID:", msgId);
 
-        // Find the actions container by data-id
-        const actionsContainer = msgId
-          ? document.querySelector(
-              '.chat-message-actions-container[data-id="' + msgId + '"]'
-            )
-          : null;
-        console.log("[Discord Style Chat] Actions container:", actionsContainer);
-        
-        // Debug: show all action containers
-        if (!actionsContainer) {
-          const allContainers = document.querySelectorAll('.chat-message-actions-container');
-          console.log("[Discord Style Chat] All action containers found:", allContainers.length);
-          allContainers.forEach((c, idx) => {
-            console.log("[Discord Style Chat] Container", idx, "data-id:", c.getAttribute("data-id"));
-          });
+        // Trigger hover to make actions container appear
+        if (msgContainer) {
+          const mouseEnter = new MouseEvent('mouseenter', { bubbles: true, cancelable: true });
+          msgContainer.dispatchEvent(mouseEnter);
         }
 
-        const replyBtn = actionsContainer
-          ? actionsContainer.querySelector(".reply-btn")
-          : null;
-        console.log("[Discord Style Chat] Found reply button:", replyBtn);
-        
-        if (replyBtn && replyBtn.click) {
-          console.log("[Discord Style Chat] Clicking reply button");
-          replyBtn.click();
-        }
+        // Small delay to let the actions container render
+        setTimeout(() => {
+          // Find the actions container by data-id
+          const actionsContainer = msgId
+            ? document.querySelector(
+                '.chat-message-actions-container[data-id="' + msgId + '"]'
+              )
+            : null;
+          console.log("[Discord Style Chat] Actions container:", actionsContainer);
+
+          const replyBtn = actionsContainer
+            ? actionsContainer.querySelector(".reply-btn")
+            : null;
+          console.log("[Discord Style Chat] Found reply button:", replyBtn);
+          
+          if (replyBtn && replyBtn.click) {
+            console.log("[Discord Style Chat] Clicking reply button");
+            replyBtn.click();
+          }
+        }, 50);
       } else if (action === "gif-reply" && msgElement) {
         // Reply to the message and then open the GIF picker in the composer
         // Get message ID from the parent container
@@ -930,19 +930,27 @@ api.onPageChange(() => {
           ? msgContainer.dataset.id || msgContainer.getAttribute("data-id") || ""
           : "";
 
-        // Find the actions container by data-id
-        const actionsContainer = msgId
-          ? document.querySelector(
-              '.chat-message-actions-container[data-id="' + msgId + '"]'
-            )
-          : null;
-
-        const replyBtn = actionsContainer
-          ? actionsContainer.querySelector(".reply-btn")
-          : null;
-        if (replyBtn && replyBtn.click) {
-          replyBtn.click();
+        // Trigger hover to make actions container appear
+        if (msgContainer) {
+          const mouseEnter = new MouseEvent('mouseenter', { bubbles: true, cancelable: true });
+          msgContainer.dispatchEvent(mouseEnter);
         }
+
+        // Small delay to let the actions container render, then click reply
+        setTimeout(() => {
+          const actionsContainer = msgId
+            ? document.querySelector(
+                '.chat-message-actions-container[data-id="' + msgId + '"]'
+              )
+            : null;
+
+          const replyBtn = actionsContainer
+            ? actionsContainer.querySelector(".reply-btn")
+            : null;
+          if (replyBtn && replyBtn.click) {
+            replyBtn.click();
+          }
+        }, 50);
 
         // Give the reply action a moment to wire up, then try to click the GIF button
         setTimeout(() => {
@@ -966,7 +974,7 @@ api.onPageChange(() => {
           if (gifButton && gifButton.click) {
             gifButton.click();
           }
-        }, 75);
+        }, 150);
       } else if (action === "react" && msgElement) {
         // Try to open the built-in reaction picker for this message
         console.log("[Discord Style Chat] Add Reaction action triggered");
@@ -980,32 +988,32 @@ api.onPageChange(() => {
         console.log("[Discord Style Chat] Message container:", msgContainer);
         console.log("[Discord Style Chat] Message ID:", msgId);
 
-        // Find the actions container by data-id
-        const actionsContainer = msgId
-          ? document.querySelector(
-              '.chat-message-actions-container[data-id="' + msgId + '"]'
-            )
-          : null;
-        console.log("[Discord Style Chat] Actions container:", actionsContainer);
-        
-        // Debug: show all action containers
-        if (!actionsContainer) {
-          const allContainers = document.querySelectorAll('.chat-message-actions-container');
-          console.log("[Discord Style Chat] All action containers found:", allContainers.length);
-          allContainers.forEach((c, idx) => {
-            console.log("[Discord Style Chat] Container", idx, "data-id:", c.getAttribute("data-id"));
-          });
+        // Trigger hover to make actions container appear
+        if (msgContainer) {
+          const mouseEnter = new MouseEvent('mouseenter', { bubbles: true, cancelable: true });
+          msgContainer.dispatchEvent(mouseEnter);
         }
 
-        const reactBtn = actionsContainer
-          ? actionsContainer.querySelector(".react-btn")
-          : null;
-        console.log("[Discord Style Chat] Found react button:", reactBtn);
-        
-        if (reactBtn && reactBtn.click) {
-          console.log("[Discord Style Chat] Clicking react button");
-          reactBtn.click();
-        }
+        // Small delay to let the actions container render
+        setTimeout(() => {
+          // Find the actions container by data-id
+          const actionsContainer = msgId
+            ? document.querySelector(
+                '.chat-message-actions-container[data-id="' + msgId + '"]'
+              )
+            : null;
+          console.log("[Discord Style Chat] Actions container:", actionsContainer);
+
+          const reactBtn = actionsContainer
+            ? actionsContainer.querySelector(".react-btn")
+            : null;
+          console.log("[Discord Style Chat] Found react button:", reactBtn);
+          
+          if (reactBtn && reactBtn.click) {
+            console.log("[Discord Style Chat] Clicking react button");
+            reactBtn.click();
+          }
+        }, 50);
       } else if (action === "report" && msgElement) {
         // Try to trigger the built-in flag / report action for this message
         const reportBtn =
