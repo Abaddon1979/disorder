@@ -946,23 +946,10 @@ api.onPageChange(() => {
   }
 
   function setupUserNoteObserver() {
-    const container =
-      document.querySelector(".chat-messages-container") ||
-      document.querySelector(".chat-messages-scroller");
-    if (!container || container.__discordNoteObserver) {
-      return;
-    }
-
-    const observer = new MutationObserver(() => {
-      refreshUserNoteIndicators();
-    });
-
-    observer.observe(container, {
-      childList: true,
-      subtree: true,
-    });
-
-    container.__discordNoteObserver = observer;
+    // MutationObserver disabled to avoid performance issues / infinite loops.
+    // We now rely on explicit calls to refreshUserNoteIndicators()
+    // (on initial load and after saving a note).
+    return;
   }
 
   function openUserNoteEditor(username) {
