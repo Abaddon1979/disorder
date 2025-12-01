@@ -537,6 +537,40 @@ body:not(.enable-online-sidebar) {
   }
 }
 
+.discord-chat-context-menu__quick-reactions {
+  display: flex;
+  align-items: center;
+  padding: 4px 6px 6px 6px;
+  border-bottom: 1px solid darken($discord-darkest, 8%);
+  gap: 4px;
+}
+
+.discord-chat-context-menu__quick-reaction {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: none;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  color: $discord-text;
+  font-size: 16px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+
+  &:hover {
+    background-color: $discord-hover;
+  }
+
+  &:active {
+    transform: scale(0.96);
+  }
+}
+
 body.discord-chat-context-open {
   cursor: default;
 }

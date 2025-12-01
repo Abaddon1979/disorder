@@ -583,6 +583,10 @@ api.onPageChange(() => {
         action: "reply",
       });
       items.push({
+        label: "GIF Reply",
+        action: "gif-reply",
+      });
+      items.push({
         label: "Copy text",
         action: "copy-message",
       });
@@ -601,7 +605,20 @@ api.onPageChange(() => {
       });
     }
 
-    let html = '<ul class="discord-chat-context-menu__list">';
+    let html = "";
+
+    // For message context, add a Discord-style quick reactions row
+    if (type === "message") {
+      html +=
+        '<div class="discord-chat-context-menu__quick-reactions">' +
+        '<button type="button" class="discord-chat-context-menu__quick-reaction" data-emoji="rofl">🤣</button>' +
+        '<button type="button" class="discord-chat-context-menu__quick-reaction" data-emoji="heart">❤️</button>' +
+        '<button type="button" class="discord-chat-context-menu__quick-reaction" data-emoji="people_hugging">🫂</button>' +
+        '<button type="button" class="discord-chat-context-menu__quick-reaction" data-emoji="joy">😂</button>' +
+        "</div>";
+    }
+
+    html += '<ul class="discord-chat-context-menu__list">';
     items.forEach((item) => {
       const disabledClass = item.disabled ? " is-disabled" : "";
       html +=
@@ -638,6 +655,59 @@ api.onPageChange(() => {
       messageId,
       messageEl,
     });
+
+    // Wire up quick reaction buttons (if present)
+    const quickButtons = menu.querySelectorAll(
+      ".discord-chat-context-menu__quick-reaction"
+    );
+    if (quickButtons.length) {
+      quickButtons.forEach((btn) => {
+        btn.addEventListener("click", function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+
+          const emojiShortcode = btn.dataset.emoji;
+          const msgId = menu.dataset.messageId || messageId || "";
+          if (!emojiShortcode || !msgId) {
+            hideChatContextMenu();
+            return;
+          }
+
+          // Try to send the reaction directly to the chat reactions API.
+          // If that fails for any reason, fall back to opening the built-in
+          // reaction picker for the message.
+          (async function () {
+            let reacted = false;
+            try {
+              if (typeof ajax === "function") {
+                await ajax("/chat/api/messages/" + msgId + "/reactions", {
+                  type: "PUT",
+                  data: { emoji: emojiShortcode },
+                });
+                reacted = true;
+              }
+            } catch (err) {
+              console.error(
+                "[Discord Style Chat] Quick reaction failed, falling back to picker",
+                err
+              );
+            }
+
+            if (!reacted && messageEl) {
+              const reactBtn =
+                messageEl.querySelector(
+                  '.chat-message-reaction, .chat-message-react, [data-action="react"], .chat-message-actions__button--react'
+                ) || null;
+              if (reactBtn && reactBtn.click) {
+                reactBtn.click();
+              }
+            }
+          })();
+
+          hideChatContextMenu();
+        });
+      });
+    }
 
     document.body.appendChild(menu);
     document.body.classList.add("discord-chat-context-open");
@@ -794,6 +864,25 @@ api.onPageChange(() => {
         if (replyBtn && replyBtn.click) {
           replyBtn.click();
         }
+      } else if (action === "gif-reply" && msgElement) {
+        // Reply to the message and then open the GIF picker in the composer
+        const replyBtn =
+          msgElement.querySelector(".chat-message-reply") ||
+          msgElement.querySelector('[data-action="reply"]');
+        if (replyBtn && replyBtn.click) {
+          replyBtn.click();
+        }
+
+        // Give the reply action a moment to wire up, then try to click the GIF button
+        setTimeout(() => {
+          const gifButton =
+            document.querySelector(
+              ".chat-composer [data-action='open-gifs'], .chat-composer [data-action='open-gif'], .chat-composer__gif-btn, .chat-composer-button--gif, button.chat-composer-gifs-button"
+            ) || null;
+          if (gifButton && gifButton.click) {
+            gifButton.click();
+          }
+        }, 75);
       } else if (action === "react" && msgElement) {
         // Try to open the built-in reaction picker for this message
         const reactBtn =
