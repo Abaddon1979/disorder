@@ -837,10 +837,6 @@ api.onPageChange(() => {
       const infoEl =
         el.closest(".chat-message-info, .chat-message-header") ||
         el.parentElement;
-------- REPLACE
-      const infoEl =
-        el.closest(".chat-message-info, .chat-message-header") ||
-        el.parentElement;
       if (!infoEl) {
         return;
       }
@@ -857,10 +853,6 @@ api.onPageChange(() => {
           icon.title = "You have a personal note for @" + uname;
           icon.textContent = "📝";
 
-          const timeEl = infoEl.querySelector(
-            ".time, .chat-message-time, .chat-message-metadata__time"
-          );
-------- REPLACE
           const timeEl = infoEl.querySelector(
             ".time, .chat-message-time, .chat-message-metadata__time"
           );
@@ -906,28 +898,6 @@ api.onPageChange(() => {
     });
   }
 
-  function setupUserNoteObserver() {
-    const container =
-      document.querySelector(".chat-messages-container") ||
-      document.querySelector(".chat-messages-scroller");
-    if (!container || container.__discordNoteObserver) {
-      return;
-    }
-
-    const observer = new MutationObserver(() => {
-      refreshUserNoteIndicators();
-    });
-
-    observer.observe(container, {
-      childList: true,
-      subtree: true,
-    });
-
-    container.__discordNoteObserver = observer;
-  }
-
-  function openUserNoteEditor(username) {
-------- REPLACE
   function setupUserNoteObserver() {
     const container =
       document.querySelector(".chat-messages-container") ||
@@ -1226,10 +1196,6 @@ api.onPageChange(() => {
     createSidebar();
   }
 
-  // After initial render of chat + sidebar, sync note icons
-  refreshUserNoteIndicators();
-  setupUserNoteObserver();
-------- REPLACE
   // Initialize chat context menu once; it will only react inside chat areas
   setupChatContextMenu();
 
