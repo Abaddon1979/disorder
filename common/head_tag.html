@@ -859,8 +859,11 @@ api.onPageChange(() => {
         return;
       }
 
-      const key = "discord_user_note_" + norm;
-      const stored = localStorage.getItem(key);
+      // Support both legacy (case-sensitive) and normalized keys
+      const baseKey = "discord_user_note_" + uname;
+      const normKey = "discord_user_note_" + norm;
+      const stored =
+        localStorage.getItem(normKey) || localStorage.getItem(baseKey);
       const hasNote = !!(stored && stored.trim());
       if (!hasNote) {
         return;
@@ -890,8 +893,11 @@ api.onPageChange(() => {
         return;
       }
 
-      const key = "discord_user_note_" + norm;
-      const stored = localStorage.getItem(key);
+      // Support both legacy (case-sensitive) and normalized keys
+      const baseKey = "discord_user_note_" + uname;
+      const normKey = "discord_user_note_" + norm;
+      const stored =
+        localStorage.getItem(normKey) || localStorage.getItem(baseKey);
       const hasNote = !!(stored && stored.trim());
 
       // Remove any extras; we only want one icon per row
@@ -938,8 +944,14 @@ api.onPageChange(() => {
 
     const normUsername =
       (username || "").trim().replace(/^@/, "").toLowerCase();
+    const baseKey = "discord_user_note_" + username;
+    const normKey = "discord_user_note_" + normUsername;
+
+    // Prefer normalized key, but fall back to legacy key so old notes still work
     const existingNote =
-      localStorage.getItem("discord_user_note_" + normUsername) || "";
+      localStorage.getItem(normKey) ||
+      localStorage.getItem(baseKey) ||
+      "";
 
     const backdrop = document.createElement("div");
     backdrop.className = "discord-note-modal-backdrop";
@@ -995,12 +1007,16 @@ api.onPageChange(() => {
         e.preventDefault();
         e.stopPropagation();
         const newValue = textarea ? textarea.value.trim() : "";
-        const key = "discord_user_note_" + normUsername;
+        const baseKey = "discord_user_note_" + username;
+        const normKey = "discord_user_note_" + normUsername;
 
         if (newValue) {
-          localStorage.setItem(key, newValue);
+          // Write to both keys so both new and legacy lookups see the note
+          localStorage.setItem(normKey, newValue);
+          localStorage.setItem(baseKey, newValue);
         } else {
-          localStorage.removeItem(key);
+          localStorage.removeItem(normKey);
+          localStorage.removeItem(baseKey);
         }
 
         closeNoteModal();
