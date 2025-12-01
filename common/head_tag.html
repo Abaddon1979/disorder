@@ -822,15 +822,18 @@ api.onPageChange(() => {
     const usernameSelectors =
       ".chat-message-info .username, .chat-message-username, .chat-message-author, .chat-message-user, [data-user-card], [data-username]";
     const nameEls = document.querySelectorAll(usernameSelectors);
+
     nameEls.forEach((el) => {
-      let uname =
+      const raw =
         (el.dataset && (el.dataset.userCard || el.dataset.username)) ||
-        (el.textContent || "").trim().replace(/^@/, "");
-      if (!uname) {
+        (el.textContent || "");
+      const uname = (raw || "").trim().replace(/^@/, "");
+      const norm = uname.toLowerCase();
+      if (!norm) {
         return;
       }
 
-      const key = "discord_user_note_" + uname;
+      const key = "discord_user_note_" + norm;
       const stored = localStorage.getItem(key);
       const hasNote = !!(stored && stored.trim());
 
@@ -841,15 +844,15 @@ api.onPageChange(() => {
         return;
       }
 
-      let icon = infoEl.querySelector(
-        '.discord-note-indicator[data-username="' + uname + '"]'
-      );
+      // Only ever one note icon per header; ignore username differences
+      let icon = infoEl.querySelector(".discord-note-indicator");
 
       if (hasNote) {
         if (!icon) {
           icon = document.createElement("span");
           icon.className = "discord-note-indicator";
           icon.dataset.username = uname;
+          icon.dataset.usernameNormalized = norm;
           icon.title = "You have a personal note for @" + uname;
           icon.textContent = "📝";
 
@@ -858,6 +861,10 @@ api.onPageChange(() => {
           );
           const anchor = timeEl || el;
           anchor.insertAdjacentElement("afterend", icon);
+        } else {
+          // Keep a single icon but keep metadata in sync
+          icon.dataset.username = uname;
+          icon.dataset.usernameNormalized = norm;
         }
       } else if (icon) {
         icon.remove();
@@ -867,30 +874,34 @@ api.onPageChange(() => {
     // Sidebar / mobile drawer: add/remove icon at end of user row
     const sidebarItems = document.querySelectorAll(".discord-user-item");
     sidebarItems.forEach((item) => {
-      const uname =
+      const raw =
         item.dataset.username ||
         item.getAttribute("data-username") ||
-        (item.textContent || "").trim();
-      if (!uname) {
+        (item.textContent || "");
+      const uname = (raw || "").trim().replace(/^@/, "");
+      const norm = uname.toLowerCase();
+      if (!norm) {
         return;
       }
 
-      const key = "discord_user_note_" + uname;
+      const key = "discord_user_note_" + norm;
       const stored = localStorage.getItem(key);
       const hasNote = !!(stored && stored.trim());
 
-      let icon = item.querySelector(
-        '.discord-note-indicator[data-username="' + uname + '"]'
-      );
+      let icon = item.querySelector(".discord-note-indicator");
 
       if (hasNote) {
         if (!icon) {
           icon = document.createElement("span");
           icon.className = "discord-note-indicator";
           icon.dataset.username = uname;
+          icon.dataset.usernameNormalized = norm;
           icon.title = "You have a personal note for @" + uname;
           icon.textContent = "📝";
           item.appendChild(icon);
+        } else {
+          icon.dataset.username = uname;
+          icon.dataset.usernameNormalized = norm;
         }
       } else if (icon) {
         icon.remove();
@@ -924,8 +935,10 @@ api.onPageChange(() => {
       .querySelectorAll(".discord-note-modal-backdrop, .discord-note-modal")
       .forEach((el) => el.remove());
 
+    const normUsername =
+      (username || "").trim().replace(/^@/, "").toLowerCase();
     const existingNote =
-      localStorage.getItem("discord_user_note_" + username) || "";
+      localStorage.getItem("discord_user_note_" + normUsername) || "";
 
     const backdrop = document.createElement("div");
     backdrop.className = "discord-note-modal-backdrop";
@@ -981,7 +994,7 @@ api.onPageChange(() => {
         e.preventDefault();
         e.stopPropagation();
         const newValue = textarea ? textarea.value.trim() : "";
-        const key = "discord_user_note_" + username;
+        const key = "discord_user_note_" + normUsername;
 
         if (newValue) {
           localStorage.setItem(key, newValue);
