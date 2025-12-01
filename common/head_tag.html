@@ -818,32 +818,42 @@ api.onPageChange(() => {
   }
 
   function refreshUserNoteIndicators() {
-    // First, clean up any misplaced note icons in chat headers
-    // We only want icons that live inside the time element; anything else is removed.
+    // CHAT: clear all existing note icons in headers; we'll recalc them cleanly
     document
       .querySelectorAll(
         ".chat-message-info .discord-note-indicator, .chat-message-header .discord-note-indicator"
       )
-      .forEach((icon) => {
-        const inTime = icon.closest(
-          ".time, .chat-message-time, .chat-message-metadata__time"
-        );
-        if (!inTime) {
-          icon.remove();
-        }
-      });
+      .forEach((icon) => icon.remove());
 
-    // Chat messages: add/remove note icon tied to usernames (including replies)
-    const usernameSelectors =
-      ".chat-message-info .username, .chat-message-username, .chat-message-author, .chat-message-user, [data-user-card], [data-username]";
-    const nameEls = document.querySelectorAll(usernameSelectors);
+    // For each top-level chat message, add at most ONE icon,
+    // positioned immediately to the right of the username, not in reply previews.
+    const messageEls = document.querySelectorAll(".chat-message");
+    messageEls.forEach((msg) => {
+      // Skip messages that are part of a reply-preview / reply header block
+      if (msg.closest(".chat-reply, .chat-replies")) {
+        return;
+      }
 
-    nameEls.forEach((el) => {
+      const header =
+        msg.querySelector(".chat-message-info, .chat-message-header") || null;
+      if (!header) {
+        return;
+      }
+
+      const userEl =
+        header.querySelector(
+          "[data-user-card], [data-username], .chat-message-username, .username"
+        ) || null;
+      if (!userEl) {
+        return;
+      }
 
       const raw =
-        (el.dataset && (el.dataset.userCard || el.dataset.username)) ||
-        (el.textContent || "");
-      const uname = (raw || "").trim().replace(/^@/, "");
+        (userEl.dataset &&
+          (userEl.dataset.userCard || userEl.dataset.username)) ||
+        userEl.textContent ||
+        "";
+      const uname = raw.trim().replace(/^@/, "");
       const norm = uname.toLowerCase();
       if (!norm) {
         return;
@@ -852,62 +862,22 @@ api.onPageChange(() => {
       const key = "discord_user_note_" + norm;
       const stored = localStorage.getItem(key);
       const hasNote = !!(stored && stored.trim());
-
-      const infoEl =
-        el.closest(".chat-message-info, .chat-message-header") ||
-        el.parentElement;
-      if (!infoEl) {
+      if (!hasNote) {
         return;
       }
 
-      // Remove any extra legacy note icons; we only ever want one per header
-      const allIcons = infoEl.querySelectorAll(".discord-note-indicator");
-      allIcons.forEach((node, idx) => {
-        if (idx > 0) {
-          node.remove();
-        }
-      });
+      // Create a fresh icon and place it directly after the username
+      const icon = document.createElement("span");
+      icon.className = "discord-note-indicator";
+      icon.dataset.username = uname;
+      icon.dataset.usernameNormalized = norm;
+      icon.title = "You have a personal note for @" + uname;
+      icon.textContent = "📝";
 
-      let icon = infoEl.querySelector(".discord-note-indicator");
-
-      if (hasNote) {
-        if (!icon) {
-          icon = document.createElement("span");
-          icon.className = "discord-note-indicator";
-          icon.dataset.username = uname;
-          icon.dataset.usernameNormalized = norm;
-          icon.title = "You have a personal note for @" + uname;
-          icon.textContent = "📝";
-
-          // Only insert the icon once to avoid endless MutationObserver loops
-          const timeEl = infoEl.querySelector(
-            ".time, .chat-message-time, .chat-message-metadata__time"
-          );
-          if (timeEl) {
-            // Clean any extra icons that might be inside the time node itself
-            const timeIcons =
-              timeEl.querySelectorAll(".discord-note-indicator");
-            timeIcons.forEach((node, idx) => {
-              if (idx > 0) {
-                node.remove();
-              }
-            });
-            timeEl.appendChild(icon);
-          } else {
-            el.insertAdjacentElement("afterend", icon);
-          }
-        } else {
-          // Keep a single icon but keep metadata in sync,
-          // do NOT re-append to DOM to avoid infinite mutation cycles
-          icon.dataset.username = uname;
-          icon.dataset.usernameNormalized = norm;
-        }
-      } else if (icon) {
-        icon.remove();
-      }
+      userEl.insertAdjacentElement("afterend", icon);
     });
 
-    // Sidebar / mobile drawer: add/remove icon at end of user row
+    // SIDEBAR / MOBILE DRAWER: add/remove icon at end of user row
     const sidebarItems = document.querySelectorAll(".discord-user-item");
     sidebarItems.forEach((item) => {
       const raw =
@@ -923,6 +893,14 @@ api.onPageChange(() => {
       const key = "discord_user_note_" + norm;
       const stored = localStorage.getItem(key);
       const hasNote = !!(stored && stored.trim());
+
+      // Remove any extras; we only want one icon per row
+      const allIcons = item.querySelectorAll(".discord-note-indicator");
+      allIcons.forEach((node, idx) => {
+        if (idx > 0) {
+          node.remove();
+        }
+      });
 
       let icon = item.querySelector(".discord-note-indicator");
 
