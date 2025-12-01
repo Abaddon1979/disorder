@@ -547,7 +547,7 @@ api.onPageChange(() => {
     document.body.classList.remove("discord-chat-context-open");
   }
 
-  function buildChatContextMenuContent({ type, username, messageId, messageEl }) {
+  function buildChatContextMenuContent({ type, username }) {
     const items = [];
 
     if (type === "user" && username) {
@@ -572,28 +572,6 @@ api.onPageChange(() => {
         label: "Add Note",
         action: "add-note",
       });
-    } else if (type === "message") {
-      // Right-click on a chat message
-      items.push({
-        label: "Add Reaction",
-        action: "react",
-      });
-      items.push({
-        label: "Reply",
-        action: "reply",
-      });
-      items.push({
-        label: "GIF Reply",
-        action: "gif-reply",
-      });
-      items.push({
-        label: "Copy text",
-        action: "copy-message",
-      });
-      items.push({
-        label: "🚩 Report Message",
-        action: "report",
-      });
     }
 
     // Fallback in case we somehow ended up without items
@@ -605,20 +583,7 @@ api.onPageChange(() => {
       });
     }
 
-    let html = "";
-
-    // For message context, add a Discord-style quick reactions row
-    if (type === "message") {
-      html +=
-        '<div class="discord-chat-context-menu__quick-reactions">' +
-        '<button type="button" class="discord-chat-context-menu__quick-reaction" data-emoji="rofl">🤣</button>' +
-        '<button type="button" class="discord-chat-context-menu__quick-reaction" data-emoji="heart">❤️</button>' +
-        '<button type="button" class="discord-chat-context-menu__quick-reaction" data-emoji="people_hugging">🫂</button>' +
-        '<button type="button" class="discord-chat-context-menu__quick-reaction" data-emoji="joy">😂</button>' +
-        "</div>";
-    }
-
-    html += '<ul class="discord-chat-context-menu__list">';
+    let html = '<ul class="discord-chat-context-menu__list">';
     items.forEach((item) => {
       const disabledClass = item.disabled ? " is-disabled" : "";
       html +=
@@ -634,7 +599,7 @@ api.onPageChange(() => {
     return html;
   }
 
-  function showChatContextMenu(event, { type, username, messageId, messageEl }) {
+  function showChatContextMenu(event, { type, username }) {
     hideChatContextMenu();
     event.preventDefault();
     event.stopPropagation();
@@ -652,114 +617,7 @@ api.onPageChange(() => {
     menu.innerHTML = buildChatContextMenuContent({
       type,
       username,
-      messageId,
-      messageEl,
     });
-
-    // Wire up quick reaction buttons (if present)
-    const quickButtons = menu.querySelectorAll(
-      ".discord-chat-context-menu__quick-reaction"
-    );
-    console.log("[Discord Style Chat] Quick reaction buttons found:", quickButtons.length);
-    if (quickButtons.length) {
-      quickButtons.forEach((btn) => {
-        btn.addEventListener("click", function (e) {
-          e.preventDefault();
-          e.stopPropagation();
-
-          const emojiName = btn.dataset.emoji;
-          const msgElement = messageEl;
-          console.log("[Discord Style Chat] Quick reaction clicked:", emojiName);
-          console.log("[Discord Style Chat] Message element:", msgElement);
-          
-          if (!emojiName || !msgElement) {
-            console.log("[Discord Style Chat] Missing emoji name or message element");
-            hideChatContextMenu();
-            return;
-          }
-
-          // Get message ID from the parent container
-          const msgContainer = msgElement.closest(".chat-message-container");
-          const msgId = msgContainer
-            ? msgContainer.dataset.id || msgContainer.getAttribute("data-id") || ""
-            : "";
-          console.log("[Discord Style Chat] Message container:", msgContainer);
-          console.log("[Discord Style Chat] Message ID:", msgId);
-
-          // Trigger hover to make actions container appear
-          if (msgContainer) {
-            // Try adding hover class if it exists
-            msgContainer.classList.add('is-hovered', 'hover', 'active');
-            
-            // Dispatch multiple events to simulate real hover
-            const mouseOver = new MouseEvent('mouseover', { bubbles: true, cancelable: true, view: window });
-            const mouseEnter = new MouseEvent('mouseenter', { bubbles: true, cancelable: true, view: window });
-            const mouseMove = new MouseEvent('mousemove', { bubbles: true, cancelable: true, view: window });
-            msgContainer.dispatchEvent(mouseOver);
-            msgContainer.dispatchEvent(mouseEnter);
-            msgContainer.dispatchEvent(mouseMove);
-          }
-
-          // Longer delay to let the actions container render
-          setTimeout(() => {
-            // Find the actions container by data-id
-            let actionsContainer = msgId
-              ? document.querySelector(
-                  '.chat-message-actions-container[data-id="' + msgId + '"]'
-                )
-              : null;
-            
-            // If not found, try to force it visible with CSS
-            if (!actionsContainer) {
-              actionsContainer = document.querySelector('.chat-message-actions-container');
-              if (actionsContainer) {
-                actionsContainer.style.display = 'flex';
-                actionsContainer.style.visibility = 'visible';
-                actionsContainer.style.opacity = '1';
-              }
-            }
-            
-            console.log("[Discord Style Chat] Actions container:", actionsContainer);
-
-            // First, try to toggle an existing reaction chip with this emoji
-            let chip = actionsContainer
-              ? actionsContainer.querySelector(
-                  '.chat-message-reaction[data-emoji-name="' + emojiName + '"]'
-                )
-              : null;
-            console.log("[Discord Style Chat] Looking for existing chip with emoji:", emojiName);
-            console.log("[Discord Style Chat] Found chip:", chip);
-            
-            if (chip && chip.click) {
-              console.log("[Discord Style Chat] Clicking existing reaction chip");
-              chip.click();
-              hideChatContextMenu();
-              return;
-            }
-
-            // Otherwise, open the reaction picker
-            console.log("[Discord Style Chat] No existing chip, looking for react button");
-            const reactBtn = actionsContainer
-              ? actionsContainer.querySelector(".react-btn, .chat-message-react")
-              : null;
-            console.log("[Discord Style Chat] Found react button:", reactBtn);
-            
-            if (reactBtn && reactBtn.click) {
-              console.log("[Discord Style Chat] Clicking react button");
-              reactBtn.click();
-            }
-
-            
-            // Clean up hover classes
-            if (msgContainer) {
-              msgContainer.classList.remove('is-hovered', 'hover', 'active');
-            }
-            
-            hideChatContextMenu();
-          }, 150);
-        });
-      });
-    }
 
     document.body.appendChild(menu);
     document.body.classList.add("discord-chat-context-open");
@@ -789,8 +647,6 @@ api.onPageChange(() => {
       }
       const action = item.dataset.action;
       const uname = menu.dataset.username || username || "";
-      const msgId = menu.dataset.messageId || messageId || "";
-      const msgElement = messageEl;
 
       // Simple helpers
       function copyToClipboard(text) {
@@ -881,182 +737,6 @@ api.onPageChange(() => {
         openUserNoteEditor(uname);
       } else if (action === "copy-username" && uname) {
         copyToClipboard(uname);
-      } else if (action === "copy-message" && msgElement) {
-        const textEl =
-          msgElement.querySelector(".chat-message-text") || msgElement;
-        copyToClipboard(textEl.textContent.trim());
-      } else if (action === "copy-link" && msgId) {
-        // Best-effort message link; Discourse chat uses /chat/channel/:id?messageId=:messageId
-        const channelIdEl = document.querySelector(
-          ".chat-channel-header, .chat-header"
-        );
-        let channelId = "";
-        if (channelIdEl && channelIdEl.dataset && channelIdEl.dataset.channelId) {
-          channelId = channelIdEl.dataset.channelId;
-        }
-        const url =
-          window.location.origin +
-          (channelId
-            ? "/chat/channel/" +
-              encodeURIComponent(channelId) +
-              "?messageId=" +
-              encodeURIComponent(msgId)
-            : window.location.pathname +
-              (window.location.search
-                ? window.location.search + "&"
-                : "?") +
-              "messageId=" +
-              encodeURIComponent(msgId));
-        copyToClipboard(url);
-      } else if (action === "reply" && msgElement) {
-        // Try to trigger Discourse's built-in reply button for this message
-        console.log("[Discord Style Chat] Reply action triggered");
-        console.log("[Discord Style Chat] Message element:", msgElement);
-        
-        // Get message ID from the parent container
-        const msgContainer = msgElement.closest(".chat-message-container");
-        const msgId = msgContainer
-          ? msgContainer.dataset.id || msgContainer.getAttribute("data-id") || ""
-          : "";
-        console.log("[Discord Style Chat] Message container:", msgContainer);
-        console.log("[Discord Style Chat] Message ID:", msgId);
-
-        // Trigger hover to make actions container appear
-        if (msgContainer) {
-          // Dispatch multiple events to simulate real hover
-          const mouseOver = new MouseEvent('mouseover', { bubbles: true, cancelable: true, view: window });
-          const mouseEnter = new MouseEvent('mouseenter', { bubbles: true, cancelable: true, view: window });
-          msgContainer.dispatchEvent(mouseOver);
-          msgContainer.dispatchEvent(mouseEnter);
-        }
-
-        // Longer delay to let the actions container render
-        setTimeout(() => {
-          // Find the actions container by data-id
-          const actionsContainer = msgId
-            ? document.querySelector(
-                '.chat-message-actions-container[data-id="' + msgId + '"]'
-              )
-            : null;
-          console.log("[Discord Style Chat] Actions container:", actionsContainer);
-
-          const replyBtn = actionsContainer
-            ? actionsContainer.querySelector(".reply-btn")
-            : null;
-          console.log("[Discord Style Chat] Found reply button:", replyBtn);
-          
-          if (replyBtn && replyBtn.click) {
-            console.log("[Discord Style Chat] Clicking reply button");
-            replyBtn.click();
-          }
-        }, 100);
-      } else if (action === "gif-reply" && msgElement) {
-        // Reply to the message and then open the GIF picker in the composer
-        // Get message ID from the parent container
-        const msgContainer = msgElement.closest(".chat-message-container");
-        const msgId = msgContainer
-          ? msgContainer.dataset.id || msgContainer.getAttribute("data-id") || ""
-          : "";
-
-        // Trigger hover to make actions container appear
-        if (msgContainer) {
-          // Dispatch multiple events to simulate real hover
-          const mouseOver = new MouseEvent('mouseover', { bubbles: true, cancelable: true, view: window });
-          const mouseEnter = new MouseEvent('mouseenter', { bubbles: true, cancelable: true, view: window });
-          msgContainer.dispatchEvent(mouseOver);
-          msgContainer.dispatchEvent(mouseEnter);
-        }
-
-        // Longer delay to let the actions container render, then click reply
-        setTimeout(() => {
-          const actionsContainer = msgId
-            ? document.querySelector(
-                '.chat-message-actions-container[data-id="' + msgId + '"]'
-              )
-            : null;
-
-          const replyBtn = actionsContainer
-            ? actionsContainer.querySelector(".reply-btn")
-            : null;
-          if (replyBtn && replyBtn.click) {
-            replyBtn.click();
-          }
-        }, 100);
-
-        // Give the reply action a moment to wire up, then try to click the GIF button
-        setTimeout(() => {
-          // First, try known GIF button selectors
-          let gifButton =
-            document.querySelector(
-              ".chat-composer [data-action='open-gifs'], .chat-composer [data-action='open-gif'], .chat-composer__gif-btn, .chat-composer-button--gif, button.chat-composer-gifs-button"
-            ) || null;
-
-          // Fallback: search for a composer button with label text "Insert GIF"
-          if (!gifButton) {
-            const candidates = document.querySelectorAll(
-              ".chat-composer button, .chat-composer .btn, .chat-composer .btn-flat"
-            );
-            gifButton = Array.from(candidates).find((btn) => {
-              const txt = (btn.textContent || "").trim();
-              return txt.includes("Insert GIF");
-            });
-          }
-
-          if (gifButton && gifButton.click) {
-            gifButton.click();
-          }
-        }, 200);
-      } else if (action === "react" && msgElement) {
-        // Try to open the built-in reaction picker for this message
-        console.log("[Discord Style Chat] Add Reaction action triggered");
-        console.log("[Discord Style Chat] Message element:", msgElement);
-        
-        // Get message ID from the parent container
-        const msgContainer = msgElement.closest(".chat-message-container");
-        const msgId = msgContainer
-          ? msgContainer.dataset.id || msgContainer.getAttribute("data-id") || ""
-          : "";
-        console.log("[Discord Style Chat] Message container:", msgContainer);
-        console.log("[Discord Style Chat] Message ID:", msgId);
-
-        // Trigger hover to make actions container appear
-        if (msgContainer) {
-          // Dispatch multiple events to simulate real hover
-          const mouseOver = new MouseEvent('mouseover', { bubbles: true, cancelable: true, view: window });
-          const mouseEnter = new MouseEvent('mouseenter', { bubbles: true, cancelable: true, view: window });
-          msgContainer.dispatchEvent(mouseOver);
-          msgContainer.dispatchEvent(mouseEnter);
-        }
-
-        // Longer delay to let the actions container render
-        setTimeout(() => {
-          // Find the actions container by data-id
-          const actionsContainer = msgId
-            ? document.querySelector(
-                '.chat-message-actions-container[data-id="' + msgId + '"]'
-              )
-            : null;
-          console.log("[Discord Style Chat] Actions container:", actionsContainer);
-
-          const reactBtn = actionsContainer
-            ? actionsContainer.querySelector(".react-btn")
-            : null;
-          console.log("[Discord Style Chat] Found react button:", reactBtn);
-          
-          if (reactBtn && reactBtn.click) {
-            console.log("[Discord Style Chat] Clicking react button");
-            reactBtn.click();
-          }
-        }, 100);
-      } else if (action === "report" && msgElement) {
-        // Try to trigger the built-in flag / report action for this message
-        const reportBtn =
-          msgElement.querySelector(
-            ".chat-message-flag, [data-action=\"flag\"], [data-action=\"report\"]"
-          );
-        if (reportBtn && reportBtn.click) {
-          reportBtn.click();
-        }
       }
 
       hideChatContextMenu();
@@ -1329,93 +1009,35 @@ api.onPageChange(() => {
           return;
         }
 
-        const messageEl = target.closest
-          ? target.closest(".chat-message")
+        // Try to detect a username element
+        const usernameEl = target.closest
+          ? target.closest(
+              "[data-user-card], [data-username], .chat-message-user, .chat-message-author, .chat-message-username, .chat-message-info .username, .username, a.mention, .mention, .chat-message-avatar"
+            )
           : null;
-        if (!messageEl) {
+
+        if (!usernameEl) {
           return;
         }
 
-        // Do NOT trigger for sidebar items or other non-chat things
+        let username = "";
         if (
-          messageEl.closest &&
-          messageEl.closest("#discord-online-users-sidebar, .discord-sidebar")
+          usernameEl.dataset &&
+          (usernameEl.dataset.userCard || usernameEl.dataset.username)
         ) {
+          username =
+            usernameEl.dataset.userCard || usernameEl.dataset.username || "";
+        } else {
+          username = (usernameEl.textContent || "").trim().replace(/^@/, "");
+        }
+
+        if (!username) {
           return;
         }
-
-        let contextType = "message";
-        let username = null;
-
-        // Try to detect a username element inside this chat message.
-        // We support multiple common patterns used by Discourse chat:
-        //  - elements with data-user-card / data-username
-        //  - typical chat username containers / mentions
-        let usernameEl = null;
-        if (target.closest) {
-          // Try a wide set of selectors; we are already scoped to `.chat-message`
-          // so a plain `.username` here should be safe to treat as the chat name.
-          usernameEl = target.closest(
-            "[data-user-card], [data-username], .chat-message-user, .chat-message-author, .chat-message-username, .chat-message-info .username, .username, a.mention, .mention, .chat-message-avatar"
-          );
-        }
-
-        if (usernameEl) {
-          contextType = "user";
-
-          // Resolve username, preferring data attributes, with a fallback scan
-          // of the whole message element so avatar clicks still get the name.
-          let resolvedUsername = "";
-
-          if (
-            usernameEl.dataset &&
-            (usernameEl.dataset.userCard || usernameEl.dataset.username)
-          ) {
-            resolvedUsername =
-              usernameEl.dataset.userCard || usernameEl.dataset.username || "";
-          } else {
-            resolvedUsername =
-              (usernameEl.textContent || "").trim().replace(/^@/, "");
-          }
-
-          // If that element had no useful text, look for a better username node
-          // inside the same chat message.
-          if (!resolvedUsername && messageEl) {
-            const innerNameEl =
-              messageEl.querySelector(
-                "[data-user-card], [data-username], .chat-message-username, .chat-message-info .username, .username"
-              );
-            if (innerNameEl) {
-              if (
-                innerNameEl.dataset &&
-                (innerNameEl.dataset.userCard || innerNameEl.dataset.username)
-              ) {
-                resolvedUsername =
-                  innerNameEl.dataset.userCard ||
-                  innerNameEl.dataset.username ||
-                  "";
-              } else {
-                resolvedUsername = (
-                  innerNameEl.textContent || ""
-                ).trim().replace(/^@/, "");
-              }
-            }
-          }
-
-          username = resolvedUsername;
-        }
-
-        const msgId =
-          messageEl.dataset.messageId ||
-          messageEl.dataset.id ||
-          messageEl.getAttribute("data-id") ||
-          "";
 
         showChatContextMenu(e, {
-          type: contextType,
+          type: "user",
           username,
-          messageId: msgId,
-          messageEl,
         });
       },
       true
@@ -1457,8 +1079,6 @@ api.onPageChange(() => {
         showChatContextMenu(e, {
           type: "user",
           username: uname,
-          messageId: "",
-          messageEl: null,
         });
       },
       true
