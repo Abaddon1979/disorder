@@ -15,9 +15,12 @@ api.onPageChange(() => {
 
   if (!sidebarEnabled) return;
   if (isNarrowDesktop) return;
-  
-  const isChatPage = window.location.pathname.includes('/chat') || document.querySelector('.full-page-chat, .chat-drawer');
-  
+
+  // Only treat the page as "chat" when the full-page chat is present.
+  // This prevents the online users sidebar from showing when only the
+  // compact chat drawer/preview is open.
+  const isChatPage = !!document.querySelector('.full-page-chat');
+
   if (!isChatPage) {
     // Ensure any chat context menu is removed when leaving chat
     const existingMenu = document.querySelector('.discord-chat-context-menu');
