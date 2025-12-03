@@ -130,6 +130,14 @@ $discord-hover: #3c3f45;
     color: $discord-text !important;
     font-family: 'Quicksand', sans-serif;
 
+    // Ensure multiple emojis in a row render horizontally, not stacked
+    .emoji,
+    img.emoji {
+      display: inline-block !important;
+      vertical-align: middle;
+      margin: 0 1px;
+    }
+
     a {
       color: $discord-text-link !important;
       text-decoration: none;
