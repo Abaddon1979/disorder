@@ -1184,3 +1184,12 @@ body.discord-chat-context-open {
   color: $discord-text-muted;
   font-size: 12px;
 }
+
+// Ensure emojis in regular post content stay inline (single line) and not stacked vertically
+.cooked {
+  .emoji,
+  img.emoji {
+    display: inline-block !important;
+    vertical-align: middle;
+  }
+}
