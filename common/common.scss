@@ -146,6 +146,14 @@ $discord-hover: #3c3f45;
       margin: 0 1px;
     }
 
+    // Increase size of chat images by 3x
+    img:not(.emoji) {
+      zoom: 3;
+      max-width: 33.33%; // Prevent overflow after zoom
+      height: auto;
+    }
+
+
     a {
       color: $discord-text-link !important;
       text-decoration: none;
