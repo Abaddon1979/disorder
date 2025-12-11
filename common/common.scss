@@ -51,15 +51,15 @@ $discord-hover: #3c3f45;
 }
 
 // Keep Discourse's default layout; just style colors/typography
-  .chat-message {
-    background-color: transparent !important;
-    color: $discord-text !important;
-    border-radius: 0 !important;
-    padding: 4px 16px !important; // tighter vertical spacing between messages
-    margin: 0 !important;
-    display: flex !important;
+.chat-message {
+  background-color: transparent !important;
+  color: $discord-text !important;
+  border-radius: 0 !important;
+  padding: 4px 16px !important; // tighter vertical spacing between messages
+  margin: 0 !important;
+  display: flex !important;
   flex-direction: row;
-  flex-wrap: wrap;          // allow reply header to be its own row
+  flex-wrap: wrap; // allow reply header to be its own row
   align-items: flex-start;
 
   // Reply header ("Replied to …") should be one full-width row above avatar/username/time
@@ -67,7 +67,7 @@ $discord-hover: #3c3f45;
     flex: 0 0 100%;
     width: 100%;
     margin-bottom: 4px;
-    margin-left: 0;         // align directly above avatar (no extra indent)
+    margin-left: 0; // align directly above avatar (no extra indent)
     display: flex;
     align-items: center;
   }
@@ -82,7 +82,7 @@ $discord-hover: #3c3f45;
   }
 
   .chat-reply__excerpt {
-    margin-left: 0;         // text starts immediately after 42px avatar box
+    margin-left: 0; // text starts immediately after 42px avatar box
 
     // Ensure multiple emojis in reply excerpts render horizontally, not stacked
     .emoji,
@@ -93,7 +93,7 @@ $discord-hover: #3c3f45;
     }
   }
 
-// Avatar on the left column
+  // Avatar on the left column
   .chat-message-avatar {
     border-radius: 50%;
     width: 42px;
@@ -146,10 +146,10 @@ $discord-hover: #3c3f45;
       margin: 0 1px;
     }
 
-    // Increase size of chat images by 3x
+    // Increase size of chat images by 2.5x
     img:not(.emoji) {
-      zoom: 3;
-      max-width: 33.33%; // Prevent overflow after zoom
+      zoom: 2.5;
+      max-width: 40%; // Prevent overflow after zoom
       height: auto;
     }
 
@@ -292,12 +292,12 @@ $discord-hover: #3c3f45;
   }
 }
 
- // Default header height for Discord-style layout (override per-site if needed)
+// Default header height for Discord-style layout (override per-site if needed)
 :root {
   --discord-header-height: 60px;
 }
 
- // Online Users Sidebar
+// Online Users Sidebar
 #discord-online-users-sidebar,
 .discord-sidebar {
   position: fixed;
@@ -500,7 +500,7 @@ body:not(.enable-online-sidebar) {
 }
 
 
- // Override chat surfaces to #19191d
+// Override chat surfaces to #19191d
 .chat-messages-scroller,
 .chat-messages-container,
 .c-navbar-container {
@@ -1195,6 +1195,7 @@ body.discord-chat-context-open {
 
 // Ensure emojis in regular post content stay inline (single line) and not stacked vertically
 .cooked {
+
   .emoji,
   img.emoji {
     display: inline-block !important;
